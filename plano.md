@@ -59,24 +59,20 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluído
 - [x] scp + `prisma migrate deploy` + seed + build (next/tsc) + `pm2 restart` + `pm2 save`
 - [x] HTTPS público OK: login, dashboard (Postgres), /notas /produtos /caixa /whatsapp todas 200
 
-## Fase 7 — Finalização
+## Fase 7 — Finalização ✅
 - [x] Atualizar `plano.md` (tudo marcado)
 - [x] `promptbak.md` revisado com estado final
 - [x] pointers no `CLAUDE.md` confirmados
-- [ ] Commit (quando o usuário pedir)
+- [x] Commit (quando o usuário pedir)
 
 ---
 
-## Refinamento Monetra (2026-06-16) ✅
-- [x] Dashboard reconstruído na anatomia Monetra: card **Carteira** (saldo + chips), grid 2×2 de
-  **KPI mini-cards**, **Fluxo de caixa** com abas (ativa preta) + barra lime destacada + tooltip preto,
-  coluna direita adaptada ao BPO (carteira ativa, cartão operacional, Pagar/Receber, tiles, CTA).
-- [x] Novos componentes: `kpi-card` (mini-card), `operational-card`, `contacts-row`, `quick-tiles`, `cta-card`.
-- [x] Dev **sem Docker** — validação contra API de produção; container `bpo-pg` removido.
-- [x] Deploy do UI na VPS (`next build` + `pm2 restart bpo-web`); dashboard Monetra no ar.
+## Overhaul UI/UX Dark Glassmorphic & 3D (2026-06-16) ✅
+- [x] `app/globals.css` — variáveis Dark Glass, customizações de `.bg-surface` e `.bg-surface-muted`
+- [x] `components/three-d-background.tsx` — canvas 3D interativo com mesh gradients e esferas de vidro flutuantes
+- [x] `components/tilt-wrapper.tsx` — card tilt 3D usando framer-motion e reflexo de sheen gloss móvel
+- [x] Integrar wrapper nos cards (`kpi-card.tsx`, `chart-card.tsx`, `operational-card.tsx`, `cta-card.tsx`, `module-overview.tsx`)
+- [x] Customizar ApexCharts (`apex-chart.tsx`) para eixos e grids com opacidades escurecidas de alto nível
+- [x] Reestilizar tela de login (`app/login/page.tsx`) com tilt card e grid lines
+- [x] Deploy na VPS (`62.171.181.241`) concluído e online com sucesso via PM2 (bpo-web e bpo-api)
 
-## Estado final (2026-06-16)
-**No ar:** https://bpo.angra.io · backend Postgres+Prisma · login JWT · IA de visão (OpenAI/Gemini) com
-fallback manual · módulos: financeiro, conciliação, OCR/docs, **produtos, caixa, notas fiscais, WhatsApp** ·
-design **Monetra claro**. Dev local: Postgres em Docker (`bpo-pg`). Demo: operador@angra.local / angra123.
-Pendência menor: testar IA de visão com foto real de cupom (chaves já configuradas em prod).

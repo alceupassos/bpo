@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+out/
+dist/
+apps/api/dist/
+*.tsbuildinfo
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+apps/api/.env
+
+# Uploads / storage local
+apps/api/storage/
+
+# Logs
+*.log
+*-dev.out.log
+*-dev.err.log
+preview-*.out.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Config local de agente
+.claude/

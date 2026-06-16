@@ -1,0 +1,218 @@
+import type {
+  ApprovalRequest,
+  BankAccount,
+  BankTransaction,
+  Company,
+  DocumentRecord,
+  FinancialEntry
+} from "@/lib/api";
+import type { TableRow } from "@/lib/types";
+
+export function formatBRL(value: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
+export function formatBRLCompact(value: number): string {
+  return `R$ ${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(value)}`;
+}
+
+export function formatDateBR(iso: string | null | undefined): string {
+  if (!iso) return "-";
+  const d = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return new Intl.DateTimeFormat("pt-BR").format(d);
+}
+
+export function formatPercent(value: number): string {
+  return `${value.toString().replace(".", ",")}%`;
+}
+
+function isOverdue(dueDate: string): boolean {
+  const d = new Date(`${dueDate.slice(0, 10)}T00:00:00`);
+  return d.getTime() < Date.now();
+}
+
+/** Rótulo de status legível (PT) a partir do enum canônico do lançamento. */
+export function entryStatusLabel(entry: FinancialEntry): string {
+  switch (entry.status) {
+    case "PAID":
+      return "Pago";
+    case "RECEIVED":
+      return "Recebido";
+    case "CANCELLED":
+      return "Cancelado";
+    case "PENDING_APPROVAL":
+      return "Aguardando";
+    case "DRAFT":
+      return "Rascunho";
+    default:
+      return isOverdue(entry.dueDate) ? "Vencido" : "A vencer";
+  }
+}
+
+export function docStatusLabel(status: string): string {
+  switch (status) {
+    case "NEEDS_REVIEW":
+      return "Revisao";
+    case "APPROVED":
+      return "Aprovado";
+    case "REJECTED":
+      return "Rejeitado";
+    default:
+      return "Novo";
+  }
+}
+
+export function reconStatusLabel(status: string): string {
+  switch (status) {
+    case "RECONCILED":
+      return "Conciliado";
+    case "SUGGESTED_MATCH":
+      return "Sugerido";
+    case "DIVERGENT":
+      return "Divergente";
+    default:
+      return "Importado";
+  }
+}
+
+export function approvalStatusLabel(status: string): string {
+  switch (status) {
+    case "APPROVED":
+      return "Aprovado";
+    case "REJECTED":
+      return "Rejeitado";
+    default:
+      return "Pendente";
+  }
+}
+
+// ---- Adapters entidade → TableRow (a "cola" com os componentes existentes) ----
+
+export function payableToRow(entry: FinancialEntry): TableRow {
+  return {
+    fornecedor: entry.counterpartyName,
+    documento: entry.documentNumber,
+    categoria: entry.category,
+    vencimento: formatDateBR(entry.dueDate),
+    valor: formatBRL(entry.amount),
+    status: entryStatusLabel(entry)
+  };
+}
+
+export function receivableToRow(entry: FinancialEntry): TableRow {
+  return {
+    cliente: entry.counterpartyName,
+    fatura: entry.documentNumber,
+    emissao: formatDateBR(entry.issueDate),
+    vencimento: formatDateBR(entry.dueDate),
+    valor: formatBRL(entry.amount),
+    status: entryStatusLabel(entry)
+  };
+}
+
+export function documentToRow(doc: DocumentRecord): TableRow {
+  return {
+    documento: `${doc.type} ${doc.supplier}`.slice(0, 32),
+    tipo: doc.type,
+    fornecedor: doc.supplier,
+    valor: formatBRL(doc.amount),
+    confianca: doc.confidence ? `${doc.confidence}%` : "-",
+    status: docStatusLabel(doc.status)
+  };
+}
+
+export function reconciliationToRow(
+  tx: BankTransaction,
+  accounts: BankAccount[]
+): TableRow {
+  const account = accounts.find((a) => a.id === tx.bankAccountId);
+  return {
+    conta: account ? `${account.bank}` : "Conta",
+    extrato: tx.description,
+    sugestao: tx.matchedEntryId ? "Match sugerido" : "Sem lancamento",
+    divergencia: formatBRL(tx.divergence),
+    status: reconStatusLabel(tx.status)
+  };
+}
+
+/** Pendências do cliente a partir das aprovações em aberto. */
+export function approvalToClientRow(a: ApprovalRequest): TableRow {
+  return {
+    item: a.description,
+    responsavel: "Aprovador da empresa",
+    prazo: formatDateBR(a.createdAt),
+    status: "Ver"
+  };
+}
+
+/** Histórico recente do cliente a partir de lançamentos baixados. */
+export function entryToHistoryRow(entry: FinancialEntry): TableRow {
+  const signed = entry.type === "RECEIVABLE" ? entry.amount : -entry.amount;
+  return {
+    data: formatDateBR(entry.paidDate ?? entry.dueDate),
+    evento: `${entry.counterpartyName} - ${entry.description}`,
+    valor: `${signed < 0 ? "-" : ""}${formatBRL(Math.abs(signed))}`,
+    origem: entry.type === "RECEIVABLE" ? "Recebimento" : "Pagamento"
+  };
+}
+
+/** Relatório semanal (4 semanas terminando hoje) derivado dos lançamentos. */
+export function buildReportRows(entries: FinancialEntry[]): TableRow[] {
+  const dayMs = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const rows: TableRow[] = [];
+  for (let w = 3; w >= 0; w--) {
+    const end = now - w * 7 * dayMs;
+    const start = end - 7 * dayMs;
+    let entradas = 0;
+    let saidas = 0;
+    for (const e of entries) {
+      const t = new Date(`${e.dueDate.slice(0, 10)}T00:00:00`).getTime();
+      if (t >= start && t < end) {
+        if (e.type === "RECEIVABLE") entradas += e.amount;
+        else saidas += e.amount;
+      }
+    }
+    rows.push({
+      periodo: `Semana ${4 - w}`,
+      entradas: formatBRL(entradas),
+      saidas: formatBRL(saidas),
+      saldo: formatBRL(entradas - saidas)
+    });
+  }
+  return rows;
+}
+
+/** Linhas de configuração a partir de empresas, contas e dados base. */
+export function buildSettingsRows(companies: Company[], accounts: BankAccount[]): TableRow[] {
+  const rows: TableRow[] = [];
+  for (const c of companies) {
+    rows.push({ grupo: "Empresas", item: c.tradeName, detalhe: c.cnpj, status: "Ativo" });
+  }
+  for (const a of accounts) {
+    rows.push({
+      grupo: "Bancos",
+      item: a.bank,
+      detalhe: `Ag ${a.branch} / Cc ${a.number}`,
+      status: "Ativo"
+    });
+  }
+  rows.push({
+    grupo: "Aprovacao",
+    item: "Faixa acima de R$ 5 mil",
+    detalhe: "Aprovador da empresa",
+    status: "Ativo"
+  });
+  rows.push({
+    grupo: "Categorias",
+    item: "Despesas operacionais",
+    detalhe: "Base de categorias do BPO",
+    status: "Ativo"
+  });
+  return rows;
+}

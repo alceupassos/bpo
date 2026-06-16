@@ -1,0 +1,28 @@
+import {
+  type CanActivate,
+  type ExecutionContext,
+  ForbiddenException,
+  Injectable
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { ROLES_KEY } from "./roles.decorator";
+import type { DecodedJwt } from "./jwt.util";
+
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const required = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
+      context.getHandler(),
+      context.getClass()
+    ]);
+    if (!required || required.length === 0) return true;
+
+    const user: DecodedJwt | undefined = context.switchToHttp().getRequest().user;
+    if (!user || !required.includes(user.role)) {
+      throw new ForbiddenException("Permissao insuficiente");
+    }
+    return true;
+  }
+}

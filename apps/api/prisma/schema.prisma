@@ -1,0 +1,288 @@
+// Prisma schema — bpo-angra (PostgreSQL)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN_PLATAFORMA
+  OPERADOR_BPO
+  GESTOR_EMPRESA
+  FINANCEIRO_EMPRESA
+}
+
+enum EntryType {
+  PAYABLE
+  RECEIVABLE
+  EXPENSE
+  REVENUE
+}
+
+enum EntryStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PAID
+  RECEIVED
+  CANCELLED
+}
+
+enum DocumentStatus {
+  UPLOADED
+  NEEDS_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ReconciliationStatus {
+  IMPORTED
+  SUGGESTED_MATCH
+  RECONCILED
+  DIVERGENT
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NoteType {
+  NFE
+  NFCE
+  CUPOM
+  BOLETO
+  OUTRO
+}
+
+enum ExtractionSource {
+  MANUAL
+  AI
+}
+
+enum CashSessionStatus {
+  OPEN
+  CLOSED
+}
+
+enum CashEntryType {
+  SALE
+  IN
+  OUT
+  SANGRIA
+  SUPRIMENTO
+}
+
+enum MessageDirection {
+  IN
+  OUT
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  legalName String
+  tradeName String
+  cnpj      String   @unique
+  taxRegime String   @default("SIMPLES_NACIONAL")
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id           String  @id @default(cuid())
+  name         String
+  email        String  @unique
+  passwordHash String
+  role         Role
+  companyId    String?
+  createdAt    DateTime @default(now())
+}
+
+model BankAccount {
+  id        String   @id @default(cuid())
+  companyId String
+  bank      String
+  branch    String
+  number    String
+  balance   Float    @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+}
+
+model FinancialEntry {
+  id               String      @id @default(cuid())
+  companyId        String
+  type             EntryType
+  status           EntryStatus @default(DRAFT)
+  description      String
+  counterpartyName String
+  category         String      @default("")
+  documentNumber   String      @default("")
+  amount           Float
+  issueDate        DateTime
+  dueDate          DateTime
+  paidDate         DateTime?
+  createdAt        DateTime    @default(now())
+
+  @@index([companyId])
+  @@index([type])
+}
+
+model Document {
+  id          String         @id @default(cuid())
+  companyId   String
+  type        String
+  status      DocumentStatus @default(UPLOADED)
+  supplier    String
+  amount      Float          @default(0)
+  category    String         @default("")
+  confidence  Int            @default(0)
+  source      ExtractionSource @default(MANUAL)
+  storagePath String?
+  uploadedAt  DateTime       @default(now())
+
+  @@index([companyId])
+}
+
+model BankTransaction {
+  id            String               @id @default(cuid())
+  companyId     String
+  bankAccountId String
+  date          DateTime
+  description   String
+  amount        Float
+  status        ReconciliationStatus @default(IMPORTED)
+  matchedEntryId String?
+  divergence    Float                @default(0)
+  createdAt     DateTime             @default(now())
+
+  @@index([companyId])
+}
+
+model ApprovalRequest {
+  id          String         @id @default(cuid())
+  companyId   String
+  targetType  String
+  targetId    String
+  description String
+  amount      Float          @default(0)
+  requestedBy String
+  status      ApprovalStatus @default(PENDING)
+  createdAt   DateTime       @default(now())
+
+  @@index([companyId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  companyId  String
+  entityType String
+  entityId   String
+  action     String
+  actor      String
+  createdAt  DateTime @default(now())
+
+  @@index([companyId])
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  companyId    String
+  name         String
+  barcode      String?
+  unit         String   @default("UN")
+  price        Float    @default(0)
+  category     String?
+  sourceNoteId String?
+  createdAt    DateTime @default(now())
+
+  @@index([companyId])
+}
+
+model FiscalNote {
+  id           String           @id @default(cuid())
+  companyId    String
+  type         NoteType         @default(OUTRO)
+  supplierName String?
+  supplierCnpj String?
+  total        Float            @default(0)
+  issueDate    DateTime?
+  status       DocumentStatus   @default(NEEDS_REVIEW)
+  source       ExtractionSource @default(MANUAL)
+  storagePath  String?
+  rawText      String?
+  createdAt    DateTime         @default(now())
+  items        NoteItem[]
+
+  @@index([companyId])
+}
+
+model NoteItem {
+  id          String     @id @default(cuid())
+  noteId      String
+  description String
+  qty         Float      @default(1)
+  unitPrice   Float      @default(0)
+  total       Float      @default(0)
+  productId   String?
+  note        FiscalNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+}
+
+model CashSession {
+  id            String            @id @default(cuid())
+  companyId     String
+  openedBy      String
+  openedAt      DateTime          @default(now())
+  closedAt      DateTime?
+  openingAmount Float             @default(0)
+  closingAmount Float?
+  status        CashSessionStatus @default(OPEN)
+  entries       CashEntry[]
+
+  @@index([companyId])
+}
+
+model CashEntry {
+  id            String        @id @default(cuid())
+  sessionId     String
+  type          CashEntryType
+  amount        Float
+  description   String?
+  paymentMethod String?
+  noteId        String?
+  createdAt     DateTime      @default(now())
+  session       CashSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+model ChatThread {
+  id            String        @id @default(cuid())
+  companyId     String
+  contactName   String
+  contactPhone  String?
+  lastMessageAt DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  messages      ChatMessage[]
+
+  @@index([companyId])
+}
+
+model ChatMessage {
+  id        String           @id @default(cuid())
+  threadId  String
+  direction MessageDirection
+  body      String?
+  mediaPath String?
+  noteId    String?
+  createdAt DateTime         @default(now())
+  thread    ChatThread       @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+}

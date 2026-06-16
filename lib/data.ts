@@ -2,14 +2,17 @@ import { ArrowDownToLine, BellRing, CircleDollarSign, FileSearch, Landmark, Shie
 import type { Kpi, NavItem, QuickAction, TableRow } from "@/lib/types";
 
 export const navItems: NavItem[] = [
-  { href: "/", label: "Dashboard Geral", icon: "layout-dashboard" },
-  { href: "/contas-a-pagar", label: "Contas a Pagar", icon: "wallet" },
-  { href: "/contas-a-receber", label: "Contas a Receber", icon: "badge-dollar-sign" },
+  { href: "/", label: "Dashboard", icon: "layout-dashboard" },
+  { href: "/contas-a-pagar", label: "A Pagar", icon: "wallet" },
+  { href: "/contas-a-receber", label: "A Receber", icon: "badge-dollar-sign" },
+  { href: "/notas", label: "Notas (OCR)", icon: "receipt-text" },
+  { href: "/produtos", label: "Produtos", icon: "package" },
+  { href: "/caixa", label: "Caixa", icon: "calculator" },
   { href: "/conciliacao", label: "Conciliacao", icon: "scale" },
-  { href: "/ocr-documentos", label: "OCR e Documentos", icon: "scan-text" },
+  { href: "/whatsapp", label: "WhatsApp", icon: "message-circle" },
   { href: "/relatorios", label: "Relatorios", icon: "chart-column-big" },
-  { href: "/painel-cliente", label: "Painel do Cliente", icon: "monitor-dot" },
-  { href: "/configuracoes", label: "Configuracoes", icon: "settings-2" }
+  { href: "/painel-cliente", label: "Painel Cliente", icon: "monitor-dot" },
+  { href: "/configuracoes", label: "Config", icon: "settings-2" }
 ];
 
 export const dashboardKpis: Kpi[] = [

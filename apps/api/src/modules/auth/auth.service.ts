@@ -1,19 +1,22 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { users } from "../../data/seed";
+import { PrismaService } from "../../prisma/prisma.service";
 import { passwordMatches, signJwt, type DecodedJwt, type JwtPayload } from "./jwt.util";
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly prisma: PrismaService
+  ) {}
 
   private secret(): string {
     return this.config.get<string>("JWT_SECRET") ?? "dev-secret-change-me";
   }
 
-  login(email: string, password: string) {
-    const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (!user || !passwordMatches(password, user.password)) {
+  async login(email: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (!user || !passwordMatches(password, user.passwordHash)) {
       throw new UnauthorizedException("Credenciais invalidas");
     }
     const payload: JwtPayload = {
@@ -23,16 +26,9 @@ export class AuthService {
       role: user.role,
       companyId: user.companyId
     };
-    const accessToken = signJwt(payload, this.secret());
     return {
-      accessToken,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        companyId: user.companyId
-      }
+      accessToken: signJwt(payload, this.secret()),
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, companyId: user.companyId }
     };
   }
 

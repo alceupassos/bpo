@@ -6,7 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `bpo-angra` — an MVP SaaS for **BPO financeiro** (financial back-office) for Brazilian *Simples Nacional* small companies. Two audiences: the internal BPO operator and the end client who watches their own finances. Product spec (in Portuguese) lives in `BPO.md`; navigation/continuity plan in `next.md`. The product is deliberately **not an ERP** — keep features lean and operational.
 
-The UI is a dark, rounded "shell" app: vertical icon rail + horizontal pill nav + KPI cards + ApexCharts. The Dashboard (`/`) is the design-system parent; every other module reuses the same cards/tables/charts and only swaps data, labels, and context.
+## Working docs — READ THESE FIRST
+
+- **`plano.md`** (repo root) — **living execution checklist**, kept up to date as work proceeds. Start here to see what's done and what's next; update it as you finish items.
+- **`promptbak.md`** (repo root) — self-contained **handoff prompt** to continue this work on another model/session if credits run out. Mirrors the full context.
+
+## Visual direction (CURRENT)
+
+The current visual direction is **Monetra light mode** (reference: `monetra.webp` in the repo root): light gray background, white rounded cards, soft shadows, **lime accent `#9fe870`**, black pills (`#111316`) for active tabs/tooltips, left icon rail, top pill nav, right column with card + actions. **This supersedes the dark direction described in `BPO.md`.** Same design-system contract: the Dashboard (`/`) is the parent; other modules reuse the same cards/tables/charts and only swap data, labels, context. Charts via `components/apex-chart.tsx` (ApexCharts, SSR off).
 
 ## Monorepo layout
 

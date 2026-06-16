@@ -1,9 +1,9 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Injectable } from "@nestjs/common";
+import { AiVisionService } from "../ai/ai-vision.service";
 import type { UploadedFileLike } from "./storage.service";
 
 export interface OcrExtraction {
-  source: "MANUAL" | "HF";
+  source: "MANUAL" | "AI";
   amount: number | null;
   date: string | null;
   supplier: string | null;
@@ -12,37 +12,22 @@ export interface OcrExtraction {
 }
 
 /**
- * OCR plugável via Hugging Face com FALLBACK MANUAL OBRIGATÓRIO.
- *
- * Se HF_API_KEY não estiver configurada — ou se a chamada falhar/expirar —
- * retorna uma extração vazia em modo MANUAL e o documento segue para a fila de
- * revisão. O upload NUNCA é bloqueado por ausência de IA (requisito do BPO.md).
+ * OCR de documentos delegando ao leitor de visao por IA, com fallback manual
+ * (AiVisionService garante MANUAL quando nao ha IA / em erro).
  */
 @Injectable()
 export class OcrService {
-  private readonly logger = new Logger(OcrService.name);
+  constructor(private readonly vision: AiVisionService) {}
 
-  constructor(private readonly config: ConfigService) {}
-
-  private manualFallback(): OcrExtraction {
-    return { source: "MANUAL", amount: null, date: null, supplier: null, category: null, confidence: 0 };
-  }
-
-  async extract(_file: UploadedFileLike): Promise<OcrExtraction> {
-    const apiKey = this.config.get<string>("HF_API_KEY");
-    if (!apiKey) {
-      this.logger.log("HF_API_KEY ausente — documento vai para revisao manual.");
-      return this.manualFallback();
-    }
-
-    try {
-      // Integração real com Hugging Face entra aqui (HF_MODEL_OCR / HF_MODEL_CLASSIFICATION).
-      // Mantido como fallback enquanto a IA não está habilitada nesta entrega.
-      this.logger.warn("Integracao HF nao habilitada nesta versao — usando fallback manual.");
-      return this.manualFallback();
-    } catch (error) {
-      this.logger.error(`Falha no OCR HF, caindo em revisao manual: ${String(error)}`);
-      return this.manualFallback();
-    }
+  async extract(file: UploadedFileLike): Promise<OcrExtraction> {
+    const r = await this.vision.extract(file);
+    return {
+      source: r.source,
+      amount: r.total,
+      date: r.issueDate,
+      supplier: r.supplierName,
+      category: null,
+      confidence: r.confidence
+    };
   }
 }

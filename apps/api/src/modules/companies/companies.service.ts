@@ -1,14 +1,18 @@
-import { companies } from "../../data/seed";
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
 
+@Injectable()
 export class CompaniesService {
+  constructor(private readonly prisma: PrismaService) {}
+
   findAll(companyId?: string | null) {
-    if (companyId) {
-      return companies.filter((company) => company.id === companyId);
-    }
-    return companies;
+    return this.prisma.company.findMany({
+      where: companyId ? { id: companyId } : {},
+      orderBy: { tradeName: "asc" }
+    });
   }
 
   findOne(id: string) {
-    return companies.find((company) => company.id === id);
+    return this.prisma.company.findUnique({ where: { id } });
   }
 }

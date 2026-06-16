@@ -9,27 +9,27 @@ const calendarRows = [
 
 export function CalendarCard() {
   return (
-    <section className="rounded-[28px] border border-border bg-[#111413] p-6 soft-glow">
-      <div className="mb-6 flex justify-between text-sm text-text-soft">
+    <section className="rounded-[28px] border border-border bg-surface p-6 soft-glow">
+      <div className="mb-5 flex justify-between text-sm text-text-faint">
         {days.map((day) => (
           <span key={day}>{day}</span>
         ))}
       </div>
-      <div className="space-y-5 text-center text-lg text-white">
+      <div className="space-y-3 text-center text-base text-text">
         {calendarRows.map((row, index) => (
-          <div key={index} className="grid grid-cols-7 gap-3">
+          <div key={index} className="grid grid-cols-7 gap-2">
             {row.map((value) => {
-              const active = value === "3";
+              const active = value === "16";
               const muted = index === 0 && Number(value) < 28;
               return (
                 <div
-                  key={value}
-                  className={`grid h-10 place-items-center rounded-xl ${
+                  key={`${index}-${value}`}
+                  className={`grid h-9 place-items-center rounded-xl tabular-nums ${
                     active
-                      ? "bg-lime font-semibold text-black"
+                      ? "bg-lime font-semibold text-ink"
                       : muted
-                        ? "text-[#4f5754]"
-                        : "text-[#f1f3f7]"
+                        ? "text-text-faint"
+                        : "text-text"
                   }`}
                 >
                   {value}

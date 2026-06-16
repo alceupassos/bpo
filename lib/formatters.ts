@@ -161,6 +161,35 @@ export function entryToHistoryRow(entry: FinancialEntry): TableRow {
   };
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  "A vencer": "#2f6df6",
+  Vencido: "#ef4444",
+  Pago: "#16a34a",
+  Recebido: "#16a34a",
+  Aguardando: "#f59e0b",
+  Rascunho: "#9aa3ad",
+  Cancelado: "#c7d2cf"
+};
+
+/** Distribuição por status (para donut "por status"), somando valores. */
+export function statusDonut(entries: FinancialEntry[]): {
+  labels: string[];
+  series: number[];
+  colors: string[];
+} {
+  const map = new Map<string, number>();
+  for (const e of entries) {
+    const k = entryStatusLabel(e);
+    map.set(k, (map.get(k) ?? 0) + e.amount);
+  }
+  const labels = [...map.keys()];
+  return {
+    labels,
+    series: labels.map((l) => Math.round(map.get(l) ?? 0)),
+    colors: labels.map((l) => STATUS_COLORS[l] ?? "#cbd5e1")
+  };
+}
+
 /** Relatório semanal (4 semanas terminando hoje) derivado dos lançamentos. */
 export function buildReportRows(entries: FinancialEntry[]): TableRow[] {
   const dayMs = 24 * 60 * 60 * 1000;

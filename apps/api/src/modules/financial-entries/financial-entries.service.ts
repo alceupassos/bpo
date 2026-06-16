@@ -1,9 +1,7 @@
-import {
-  financialEntries,
-  scopeByCompany,
-  type EntryType,
-  type FinancialEntry
-} from "../../data/seed";
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+
+type EntryType = "PAYABLE" | "RECEIVABLE" | "EXPENSE" | "REVENUE";
 
 type CreateFinancialEntryPayload = {
   type: EntryType;
@@ -13,50 +11,47 @@ type CreateFinancialEntryPayload = {
   dueDate?: string;
 };
 
+@Injectable()
 export class FinancialEntriesService {
-  private readonly entries: FinancialEntry[] = [...financialEntries];
+  constructor(private readonly prisma: PrismaService) {}
 
   list(type?: EntryType, companyId?: string | null) {
-    let result = scopeByCompany(this.entries, companyId);
-    if (type) {
-      result = result.filter((entry) => entry.type === type);
-    }
-    return result;
+    return this.prisma.financialEntry.findMany({
+      where: { ...(type ? { type } : {}), ...(companyId ? { companyId } : {}) },
+      orderBy: { dueDate: "asc" }
+    });
   }
 
   create(payload: CreateFinancialEntryPayload, companyId?: string | null) {
-    const today = new Date().toISOString().slice(0, 10);
-    const entry: FinancialEntry = {
-      id: `entry-${this.entries.length + 1}`,
-      companyId: companyId ?? "company-1",
-      type: payload.type,
-      status: "DRAFT",
-      description: payload.description,
-      counterpartyName: payload.counterpartyName,
-      category: payload.type === "RECEIVABLE" ? "Vendas" : "Servicos de Terceiros",
-      documentNumber: `MAN-${this.entries.length + 1}`,
-      amount: payload.amount,
-      issueDate: today,
-      dueDate: payload.dueDate ?? today,
-      paidDate: null
-    };
-    this.entries.push(entry);
-    return entry;
+    const today = new Date();
+    return this.prisma.financialEntry.create({
+      data: {
+        companyId: companyId ?? "company-1",
+        type: payload.type,
+        status: "DRAFT",
+        description: payload.description,
+        counterpartyName: payload.counterpartyName,
+        category: payload.type === "RECEIVABLE" ? "Vendas" : "Servicos de Terceiros",
+        documentNumber: "MAN",
+        amount: payload.amount,
+        issueDate: today,
+        dueDate: payload.dueDate ? new Date(payload.dueDate) : today,
+        paidDate: null
+      }
+    });
   }
 
   markPaid(id: string) {
-    const entry = this.entries.find((e) => e.id === id);
-    if (!entry) return { id, status: "PAID" };
-    entry.status = "PAID";
-    entry.paidDate = new Date().toISOString().slice(0, 10);
-    return entry;
+    return this.prisma.financialEntry.update({
+      where: { id },
+      data: { status: "PAID", paidDate: new Date() }
+    });
   }
 
   markReceived(id: string) {
-    const entry = this.entries.find((e) => e.id === id);
-    if (!entry) return { id, status: "RECEIVED" };
-    entry.status = "RECEIVED";
-    entry.paidDate = new Date().toISOString().slice(0, 10);
-    return entry;
+    return this.prisma.financialEntry.update({
+      where: { id },
+      data: { status: "RECEIVED", paidDate: new Date() }
+    });
   }
 }

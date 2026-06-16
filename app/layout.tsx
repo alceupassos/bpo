@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThreeDBackground } from "@/components/three-d-background";
 
 export const metadata: Metadata = {
   title: "Angra BPO Financeiro",
@@ -13,7 +14,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body className="antialiased overflow-x-hidden">
+        <ThreeDBackground />
+        {children}
+      </body>
     </html>
   );
 }
+

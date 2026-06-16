@@ -23,10 +23,10 @@ export function SectionPlaceholder({
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, duration: 0.2 }}
-            className="rounded-[24px] border border-border bg-[#111413] p-5 soft-glow"
+            className="rounded-[24px] border border-border bg-surface p-5 soft-glow"
           >
-            <div className="text-[11px] uppercase tracking-[0.18em] text-text-faint">{metric.label}</div>
-            <div className="mt-3 text-[2rem] font-semibold text-white">{metric.value}</div>
+            <div className="text-[12px] font-medium text-text-soft">{metric.label}</div>
+            <div className="mt-2 text-[1.9rem] font-bold tracking-tight text-text tabular-nums">{metric.value}</div>
           </motion.article>
         ))}
       </div>
@@ -45,35 +45,33 @@ export function SectionPlaceholder({
         <motion.section
           initial={false}
           animate={{ opacity: 1, y: 0 }}
-          className="panel-grid rounded-[26px] border border-border bg-[#111413] p-6 soft-glow"
+          className="rounded-[26px] border border-border bg-surface p-6 soft-glow"
         >
           <div className="flex h-full flex-col justify-between">
             <div>
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-text-faint">
-                <Sparkles className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
                 Evolucao planejada
               </div>
-              <h3 className="mt-4 text-[2rem] leading-tight text-white">
-                {callout}
-              </h3>
+              <h3 className="mt-4 text-pretty text-[1.6rem] font-semibold leading-tight text-text">{callout}</h3>
               <p className="mt-3 text-sm leading-6 text-text-soft">
                 Esta superficie ja nasce conectada ao mesmo shell, filtros globais e componentes base do painel principal.
               </p>
             </div>
             <div className="mt-8 space-y-3">
-              <div className="flex items-center justify-between rounded-2xl border border-border bg-[#171c1a] px-4 py-4">
+              <div className="flex items-center justify-between rounded-2xl border border-border bg-surface-muted px-4 py-4">
                 <div className="flex items-center gap-3">
-                  <FolderKanban className="h-4 w-4 text-text-faint" />
-                  <span className="text-sm text-white">Backlog visual e funcional</span>
+                  <FolderKanban className="h-4 w-4 text-text-faint" aria-hidden="true" />
+                  <span className="text-sm text-text">Backlog visual e funcional</span>
                 </div>
-                <ArrowRight className="h-4 w-4 text-text-faint" />
+                <ArrowRight className="h-4 w-4 text-text-faint" aria-hidden="true" />
               </div>
-              <div className="flex items-center justify-between rounded-2xl border border-border bg-[#171c1a] px-4 py-4">
+              <div className="flex items-center justify-between rounded-2xl border border-border bg-surface-muted px-4 py-4">
                 <div className="flex items-center gap-3">
-                  <FolderKanban className="h-4 w-4 text-text-faint" />
-                  <span className="text-sm text-white">Seeds e regras do modulo</span>
+                  <FolderKanban className="h-4 w-4 text-text-faint" aria-hidden="true" />
+                  <span className="text-sm text-text">Seeds e regras do modulo</span>
                 </div>
-                <ArrowRight className="h-4 w-4 text-text-faint" />
+                <ArrowRight className="h-4 w-4 text-text-faint" aria-hidden="true" />
               </div>
             </div>
           </div>

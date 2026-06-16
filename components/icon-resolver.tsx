@@ -1,10 +1,15 @@
 "use client";
 
+import type { SVGProps } from "react";
 import {
   BadgeDollarSign,
+  Calculator,
   ChartColumnBig,
   LayoutDashboard,
+  MessageCircle,
   MonitorDot,
+  Package,
+  ReceiptText,
   ScanText,
   Scale,
   Settings2,
@@ -19,16 +24,17 @@ const icons = {
   "scan-text": ScanText,
   "chart-column-big": ChartColumnBig,
   "monitor-dot": MonitorDot,
-  "settings-2": Settings2
+  "settings-2": Settings2,
+  package: Package,
+  calculator: Calculator,
+  "receipt-text": ReceiptText,
+  "message-circle": MessageCircle
 };
 
 export function IconResolver({
   name,
-  className
-}: {
-  name: keyof typeof icons;
-  className?: string;
-}) {
+  ...props
+}: { name: keyof typeof icons } & SVGProps<SVGSVGElement>) {
   const Icon = icons[name];
-  return <Icon className={className} />;
+  return <Icon {...props} />;
 }

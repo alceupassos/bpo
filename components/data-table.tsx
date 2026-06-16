@@ -20,6 +20,8 @@ const toneMap: Record<string, "neutral" | "success" | "warning" | "danger" | "in
   Sugerido: "info",
   Importado: "neutral",
   Divergente: "danger",
+  Aberto: "success",
+  Fechado: "neutral",
   Ver: "neutral"
 };
 
@@ -32,15 +34,24 @@ export function DataTable({
   rows: TableRow[];
   dense?: boolean;
 }) {
+  if (!rows.length) {
+    return (
+      <div className="rounded-[22px] border border-dashed border-border bg-surface-muted px-6 py-10 text-center text-sm text-text-soft">
+        Nenhum registro para exibir.
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-hidden rounded-[22px] border border-border">
+    <div className="overflow-x-auto rounded-[22px] border border-border">
       <table className="min-w-full border-collapse">
-        <thead className="bg-[#171c1a]">
+        <thead className="bg-surface-muted">
           <tr>
             {columns.map((column) => (
               <th
                 key={column.key}
-                className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.14em] text-text-faint"
+                scope="col"
+                className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-faint"
               >
                 {column.label}
               </th>
@@ -52,7 +63,7 @@ export function DataTable({
             <tr
               key={rowIndex}
               className={clsx(
-                "border-t border-border bg-[#111413] transition hover:bg-[#171c1a]",
+                "border-t border-border bg-surface transition-colors hover:bg-surface-muted",
                 dense ? "text-xs" : "text-sm"
               )}
             >
@@ -63,7 +74,10 @@ export function DataTable({
                 return (
                   <td
                     key={column.key}
-                    className={clsx("px-4 py-3.5 text-text-soft", alignRight && "text-right")}
+                    className={clsx(
+                      "px-4 py-3.5 text-text-soft",
+                      alignRight && "text-right tabular-nums"
+                    )}
                   >
                     {isStatus ? (
                       <StatusBadge label={value} tone={toneMap[value] ?? "neutral"} />

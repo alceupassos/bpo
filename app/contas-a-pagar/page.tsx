@@ -3,7 +3,7 @@ import { ModuleOverview } from "@/components/module-overview";
 import { PageShell } from "@/components/page-shell";
 import { getFinancialEntries } from "@/lib/api";
 import { pageSummaries, payablesRows } from "@/lib/data";
-import { formatBRL, payableToRow } from "@/lib/formatters";
+import { formatBRL, payableToRow, statusDonut } from "@/lib/formatters";
 
 const summary = pageSummaries["/contas-a-pagar"];
 const OPEN = new Set(["DRAFT", "PENDING_APPROVAL", "APPROVED"]);
@@ -11,6 +11,7 @@ const OPEN = new Set(["DRAFT", "PENDING_APPROVAL", "APPROVED"]);
 export default async function ContasAPagarPage() {
   const entries = await getFinancialEntries("PAYABLE");
   const rows = entries ? entries.map(payableToRow) : payablesRows;
+  const donut = entries ? statusDonut(entries) : null;
 
   const metrics = entries
     ? [
@@ -44,14 +45,15 @@ export default async function ContasAPagarPage() {
           { key: "status", label: "Status" }
         ]}
         tableRows={rows}
-        chartTitle="Vencimentos por semana"
-        chartMeta="Distribuicao das obrigacoes previstas no periodo"
-        chartSeries={[{ name: "Vencimentos", data: [14, 21, 18, 11] }]}
-        chartOptions={{
-          colors: ["#9fe870"],
-          xaxis: { categories: ["Sem 1", "Sem 2", "Sem 3", "Sem 4"] },
-          legend: { show: false }
-        }}
+        chartTitle="Pagar por status"
+        chartMeta="Distribuicao das obrigacoes por situacao"
+        chartType={donut ? "donut" : "bar"}
+        chartSeries={donut ? donut.series : [{ name: "Vencimentos", data: [14, 21, 18, 11] }]}
+        chartOptions={
+          donut
+            ? { labels: donut.labels, colors: donut.colors, legend: { position: "bottom" }, stroke: { width: 0 } }
+            : { colors: ["#9fe870"], xaxis: { categories: ["Sem 1", "Sem 2", "Sem 3", "Sem 4"] }, legend: { show: false } }
+        }
         sideTitle="Leitura do modulo"
         sideCopy="Aqui o operador resolve aprovacao, comprovante e baixa sem sair do fluxo principal."
       />

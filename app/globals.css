@@ -3,23 +3,37 @@
 @tailwind utilities;
 
 :root {
-  --bg: #06080a;
-  --surface: #111413;
-  --surface-muted: #171c1a;
-  --border: #232a31;
-  --border-strong: #394653;
-  --text: #f3f6fb;
-  --text-soft: #b6c0cc;
-  --text-faint: #7e8a9a;
+  /* Monetra dark glassmorphism mode */
+  --bg: #030712;
+  --surface: rgba(17, 24, 39, 0.45);
+  --surface-muted: rgba(31, 41, 55, 0.35);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text: #f9fafb;
+  --text-soft: #9ca3af;
+  --text-faint: #6b7280;
   --lime: #9fe870;
   --lime-strong: #8ad65a;
-  --lime-soft: rgba(159, 232, 112, 0.14);
-  --navy: #17345a;
-  --navy-strong: #0f2745;
-  --accent: #264f80;
-  --success: #6bd36b;
-  --warning: #8a6a2f;
-  --danger: #ef6a5a;
+  --lime-soft: rgba(159, 232, 112, 0.12);
+  --ink: #030712;
+  --navy: #1e1b4b;
+  --navy-strong: #0f172a;
+  --accent: #3b82f6;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  
+  /* Glass glow icons */
+  --icon-blue: #60a5fa;
+  --icon-blue-bg: rgba(59, 130, 246, 0.15);
+  --icon-purple: #c084fc;
+  --icon-purple-bg: rgba(168, 85, 247, 0.15);
+  --icon-orange: #fb923c;
+  --icon-orange-bg: rgba(249, 115, 22, 0.15);
+  --icon-red: #f87171;
+  --icon-red-bg: rgba(239, 68, 68, 0.15);
+  --icon-green: #4ade80;
+  --icon-green-bg: rgba(34, 197, 94, 0.15);
 }
 
 * {
@@ -33,11 +47,10 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(120, 200, 120, 0.1), transparent 30%),
-    linear-gradient(180deg, #0a0d0a 0%, #05070a 100%);
+  background-color: var(--bg);
   color: var(--text);
   font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
 }
 
 a {
@@ -53,14 +66,39 @@ select {
 
 .panel-grid {
   background-image:
-    linear-gradient(to right, rgba(35, 42, 49, 0.35) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(35, 42, 49, 0.2) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
+/* Sombra suave de card (Glass Glow) */
 .soft-glow {
   box-shadow:
-    0 0 0 1px rgba(35, 42, 49, 0.8),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 22px 60px rgba(0, 0, 0, 0.3);
+    0 4px 30px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
+
+.card-hover {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.card-hover:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(159, 232, 112, 0.05),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Glassmorphism Overrides */
+.bg-surface {
+  background-color: var(--surface) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+}
+
+.bg-surface-muted {
+  background-color: var(--surface-muted) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+

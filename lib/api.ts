@@ -111,6 +111,82 @@ export interface SessionUser {
   companyId: string | null;
 }
 
+export interface Product {
+  id: string;
+  companyId: string;
+  name: string;
+  barcode: string | null;
+  unit: string;
+  price: number;
+  category: string | null;
+  createdAt: string;
+}
+
+export interface NoteItem {
+  id: string;
+  description: string;
+  qty: number;
+  unitPrice: number;
+  total: number;
+  productId: string | null;
+}
+
+export interface FiscalNote {
+  id: string;
+  companyId: string;
+  type: string;
+  supplierName: string | null;
+  supplierCnpj: string | null;
+  total: number;
+  issueDate: string | null;
+  status: string;
+  source: string;
+  storagePath: string | null;
+  createdAt: string;
+  items: NoteItem[];
+}
+
+export interface CashEntry {
+  id: string;
+  sessionId: string;
+  type: string;
+  amount: number;
+  description: string | null;
+  paymentMethod: string | null;
+  createdAt: string;
+}
+
+export interface CashSession {
+  id: string;
+  companyId: string;
+  openedBy: string;
+  openedAt: string;
+  closedAt: string | null;
+  openingAmount: number;
+  closingAmount: number | null;
+  status: string;
+  entries: CashEntry[];
+  balance?: number;
+}
+
+export interface ChatThread {
+  id: string;
+  companyId: string;
+  contactName: string;
+  contactPhone: string | null;
+  lastMessageAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  threadId: string;
+  direction: string;
+  body: string | null;
+  mediaPath: string | null;
+  noteId: string | null;
+  createdAt: string;
+}
+
 async function getToken(): Promise<string | undefined> {
   try {
     const store = await cookies();
@@ -144,6 +220,53 @@ export const getBankAccounts = () => apiGet<BankAccount[]>("/bank-accounts");
 export const getApprovals = () => apiGet<ApprovalRequest[]>("/approvals");
 export const getCompanies = () => apiGet<Company[]>("/companies");
 export const getCurrentUser = () => apiGet<SessionUser>("/auth/me");
+export const getProducts = () => apiGet<Product[]>("/products");
+export const getFiscalNotes = () => apiGet<FiscalNote[]>("/fiscal-notes");
+export const getFiscalNote = (id: string) => apiGet<FiscalNote>(`/fiscal-notes/${id}`);
+export const getCashCurrent = () => apiGet<CashSession | null>("/cash/current");
+export const getCashSessions = () => apiGet<CashSession[]>("/cash/sessions");
+export const getChatThreads = () => apiGet<ChatThread[]>("/chat/threads");
+export const getChatMessages = (threadId: string) =>
+  apiGet<ChatMessage[]>(`/chat/threads/${threadId}/messages`);
+
+/** POST autenticado (JSON) — usado por server actions. */
+export async function apiPost<T>(path: string, body?: unknown): Promise<T | null> {
+  try {
+    const token = await getToken();
+    const res = await fetch(`${BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      cache: "no-store"
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+/** Upload multipart autenticado — usado por server actions com arquivo. */
+export async function apiUpload<T>(path: string, file: File, field = "file"): Promise<T | null> {
+  try {
+    const token = await getToken();
+    const form = new FormData();
+    form.append(field, file);
+    const res = await fetch(`${BASE}${path}`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+      cache: "no-store"
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
 
 /** Login direto (usado pela server action). Lança em credenciais inválidas. */
 export async function login(email: string, password: string): Promise<{ accessToken: string; user: SessionUser }> {

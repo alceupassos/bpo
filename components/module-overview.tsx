@@ -1,10 +1,12 @@
 "use client";
 
 import type { ApexOptions } from "apexcharts";
-import { motion } from "framer-motion";
 import { ApexChart } from "@/components/apex-chart";
 import { ChartCard } from "@/components/chart-card";
 import { DataTable } from "@/components/data-table";
+import { TiltWrapper } from "@/components/tilt-wrapper";
+
+const dotColors = ["bg-icon-blue", "bg-icon-purple", "bg-icon-green", "bg-icon-orange"];
 
 export function ModuleOverview({
   metrics,
@@ -17,8 +19,9 @@ export function ModuleOverview({
   chartSeries,
   chartOptions,
   chartType = "bar",
-  sideTitle,
-  sideCopy
+  // sideTitle/sideCopy mantidos por compatibilidade com as páginas (não usados no layout Monetra)
+  sideTitle: _sideTitle,
+  sideCopy: _sideCopy
 }: {
   metrics: { label: string; value: string }[];
   tableTitle: string;
@@ -30,23 +33,25 @@ export function ModuleOverview({
   chartSeries: ApexAxisChartSeries | ApexNonAxisChartSeries;
   chartOptions: ApexOptions;
   chartType?: "line" | "area" | "bar" | "donut";
-  sideTitle: string;
-  sideCopy: string;
+  sideTitle?: string;
+  sideCopy?: string;
 }) {
+  void _sideTitle;
+  void _sideCopy;
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
         {metrics.map((metric, index) => (
-          <motion.article
-            key={metric.label}
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.2 }}
-            className="rounded-[24px] border border-border bg-[#111413] p-5 soft-glow"
-          >
-            <div className="text-[11px] uppercase tracking-[0.18em] text-text-faint">{metric.label}</div>
-            <div className="mt-3 text-[2rem] font-semibold text-white">{metric.value}</div>
-          </motion.article>
+          <TiltWrapper key={metric.label} delay={index * 0.05}>
+            <article className="h-full rounded-[24px] border border-border bg-surface p-5 soft-glow card-hover">
+              <div className="flex items-center gap-2">
+                <span className={`h-2 w-2 rounded-full ${dotColors[index % dotColors.length]}`} />
+                <div className="text-[12px] font-medium text-text-soft">{metric.label}</div>
+              </div>
+              <div className="mt-2 text-[1.9rem] font-bold tracking-tight text-text tabular-nums">{metric.value}</div>
+            </article>
+          </TiltWrapper>
         ))}
       </div>
 
@@ -54,29 +59,10 @@ export function ModuleOverview({
         <ChartCard title={tableTitle} meta={tableMeta}>
           <DataTable columns={tableColumns} rows={tableRows} />
         </ChartCard>
-        <ChartCard title={sideTitle} meta={sideCopy}>
-          <div className="space-y-4">
-            <div className="rounded-[24px] border border-border bg-[#171c1a] p-4">
-              <div className="text-[11px] uppercase tracking-[0.16em] text-text-faint">Leitura rapida</div>
-              <p className="mt-3 text-sm leading-6 text-text-soft">
-                {sideCopy}
-              </p>
-            </div>
-            <div className="rounded-[24px] border border-border bg-[#171c1a] p-4">
-              <div className="text-[11px] uppercase tracking-[0.16em] text-text-faint">Checklist do modulo</div>
-              <ul className="mt-3 space-y-3 text-sm text-white">
-                <li>Filtros por periodo, empresa e status</li>
-                <li>Acoes por linha sem tirar o operador da rotina</li>
-                <li>Visual alinhado ao shell dark do dashboard</li>
-              </ul>
-            </div>
-          </div>
+        <ChartCard title={chartTitle} meta={chartMeta}>
+          <ApexChart type={chartType} height={300} series={chartSeries} options={chartOptions} />
         </ChartCard>
       </div>
-
-      <ChartCard title={chartTitle} meta={chartMeta}>
-        <ApexChart type={chartType} height={280} series={chartSeries} options={chartOptions} />
-      </ChartCard>
     </div>
   );
 }

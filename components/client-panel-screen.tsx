@@ -24,17 +24,17 @@ export function ClientPanelScreen({
     ];
   const pendingRows = pending ?? clientPendingRows;
   const historyRows = history ?? clientHistoryRows;
+
   const lineOptions: ApexOptions = {
     colors: ["#9fe870"],
-    xaxis: {
-      categories: ["18/05", "19/05", "20/05", "21/05", "22/05", "23/05", "24/05"]
-    },
+    fill: { type: "gradient", gradient: { shadeIntensity: 0.4, opacityFrom: 0.4, opacityTo: 0.05 } },
+    xaxis: { categories: ["18/05", "19/05", "20/05", "21/05", "22/05", "23/05", "24/05"] },
     legend: { show: false }
   };
 
   const donutOptions: ApexOptions = {
     labels: ["A vencer", "Vencido", "Pago"],
-    colors: ["#9fe870", "#ef6a5a", "#3d5a34"],
+    colors: ["#9fe870", "#ef4444", "#c7d2cf"],
     legend: { position: "right" },
     stroke: { width: 0 }
   };
@@ -43,9 +43,9 @@ export function ClientPanelScreen({
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
         {metricCards.map((metric) => (
-          <article key={metric.label} className="rounded-[24px] border border-border bg-[#111413] p-5 soft-glow">
-            <div className="text-[11px] uppercase tracking-[0.18em] text-text-faint">{metric.label}</div>
-            <div className="mt-3 text-[2rem] font-semibold text-white">{metric.value}</div>
+          <article key={metric.label} className="rounded-[24px] border border-border bg-surface p-5 soft-glow">
+            <div className="text-[12px] font-medium text-text-soft">{metric.label}</div>
+            <div className="mt-2 text-[1.9rem] font-bold tracking-tight text-text tabular-nums">{metric.value}</div>
           </article>
         ))}
       </div>
@@ -64,7 +64,7 @@ export function ClientPanelScreen({
         </ChartCard>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_1.2fr]">
+      <div className="grid gap-6 xl:grid-cols-2">
         <ChartCard title="Pendencias do cliente" meta="Itens que pedem resposta ou aprovacao">
           <DataTable
             columns={[

@@ -13,17 +13,17 @@ export function PageShell({
   topNav?: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-bg p-5 md:p-8">
-      <div className="mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1700px] gap-6 rounded-[46px] border border-[#1d241f] bg-[radial-gradient(120%_80%_at_50%_-10%,rgba(159,232,112,0.10),transparent_60%),#0a0d0a] p-6 shadow-[0_24px_90px_rgba(0,0,0,0.55)] lg:grid-cols-[104px_minmax(0,1fr)]">
-        <div className="lg:h-full">
-          <Sidebar />
-        </div>
-        <main className="rounded-[34px] bg-transparent px-2 py-2">
-          <div className="space-y-8">
+    <div className="min-h-screen bg-bg panel-grid">
+      <div className="mx-auto flex max-w-[1700px] gap-5 px-4 py-5 md:px-6 md:py-6">
+        <Sidebar />
+        <main className="min-w-0 flex-1">
+          <div className="space-y-7">
             {topNav}
-            <div className="px-2">
-              <h1 className="font-sans text-[3rem] font-semibold leading-tight text-white">{title}</h1>
-              {subtitle ? <p className="mt-2 text-[1.05rem] text-text-soft">{subtitle}</p> : null}
+            <div className="px-1">
+              <h1 className="text-pretty text-[2.6rem] font-bold leading-[1.05] tracking-tight text-text">
+                {title}
+              </h1>
+              {subtitle ? <p className="mt-2 max-w-2xl text-[1rem] text-text-soft">{subtitle}</p> : null}
             </div>
             {children}
           </div>

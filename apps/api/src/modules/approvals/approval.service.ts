@@ -1,21 +1,22 @@
-import { approvals, scopeByCompany, type ApprovalRequest } from "../../data/seed";
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
 
+@Injectable()
 export class ApprovalService {
-  private readonly items: ApprovalRequest[] = [...approvals];
+  constructor(private readonly prisma: PrismaService) {}
 
   list(companyId?: string | null) {
-    return scopeByCompany(this.items, companyId);
+    return this.prisma.approvalRequest.findMany({
+      where: { ...(companyId ? { companyId } : {}), status: "PENDING" },
+      orderBy: { createdAt: "desc" }
+    });
   }
 
   approve(id: string) {
-    const item = this.items.find((a) => a.id === id);
-    if (item) item.status = "APPROVED";
-    return item ?? { id, status: "APPROVED" };
+    return this.prisma.approvalRequest.update({ where: { id }, data: { status: "APPROVED" } });
   }
 
   reject(id: string) {
-    const item = this.items.find((a) => a.id === id);
-    if (item) item.status = "REJECTED";
-    return item ?? { id, status: "REJECTED" };
+    return this.prisma.approvalRequest.update({ where: { id }, data: { status: "REJECTED" } });
   }
 }

@@ -3,7 +3,7 @@ import { ModuleOverview } from "@/components/module-overview";
 import { PageShell } from "@/components/page-shell";
 import { getFinancialEntries } from "@/lib/api";
 import { pageSummaries, receivablesRows } from "@/lib/data";
-import { formatBRL, receivableToRow } from "@/lib/formatters";
+import { formatBRL, receivableToRow, statusDonut } from "@/lib/formatters";
 
 const summary = pageSummaries["/contas-a-receber"];
 const OPEN = new Set(["DRAFT", "PENDING_APPROVAL", "APPROVED"]);
@@ -15,6 +15,7 @@ function isOverdue(dueDate: string): boolean {
 export default async function ContasAReceberPage() {
   const entries = await getFinancialEntries("RECEIVABLE");
   const rows = entries ? entries.map(receivableToRow) : receivablesRows;
+  const donut = entries ? statusDonut(entries) : null;
 
   const metrics = entries
     ? [
@@ -52,14 +53,15 @@ export default async function ContasAReceberPage() {
           { key: "status", label: "Status" }
         ]}
         tableRows={rows}
-        chartTitle="Aging da carteira"
-        chartMeta="Faixas de atraso e previsao de caixa"
-        chartSeries={[{ name: "Titulos", data: [21, 13, 7, 4] }]}
-        chartOptions={{
-          colors: ["#9fe870"],
-          xaxis: { categories: ["1-30", "31-60", "61-90", "90+"] },
-          legend: { show: false }
-        }}
+        chartTitle="Receber por status"
+        chartMeta="Distribuicao da carteira por situacao"
+        chartType={donut ? "donut" : "bar"}
+        chartSeries={donut ? donut.series : [{ name: "Titulos", data: [21, 13, 7, 4] }]}
+        chartOptions={
+          donut
+            ? { labels: donut.labels, colors: donut.colors, legend: { position: "bottom" }, stroke: { width: 0 } }
+            : { colors: ["#9fe870"], xaxis: { categories: ["1-30", "31-60", "61-90", "90+"] }, legend: { show: false } }
+        }
         sideTitle="Leitura do modulo"
         sideCopy="A tela de receber prioriza follow-up, aging e registro de baixa com o mesmo design system do dashboard."
       />

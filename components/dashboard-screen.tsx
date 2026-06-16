@@ -13,10 +13,11 @@ import { KpiCard } from "@/components/kpi-card";
 import { OperationalCard } from "@/components/operational-card";
 import { QuickTiles } from "@/components/quick-tiles";
 
+import type { Kpi } from "@/lib/types";
 import { TiltWrapper } from "@/components/tilt-wrapper";
 
 export function DashboardScreen({ summary }: { summary?: DashboardSummary | null }) {
-  const kpis = summary
+  const kpis: Kpi[] = summary
     ? [
         { ...dashboardKpis[0], value: formatBRL(summary.saldoProjetado) },
         { ...dashboardKpis[1], value: formatBRL(summary.aPagar) },

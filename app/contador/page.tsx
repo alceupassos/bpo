@@ -7,7 +7,7 @@ import { ChartCard } from "@/components/chart-card";
 import { DataTable } from "@/components/data-table";
 import { TiltWrapper } from "@/components/tilt-wrapper";
 import { accountantExportLogs } from "@/lib/data";
-import { CheckCircle2, AlertCircle, FileZip, Send, Download, RefreshCw, Check } from "lucide-react";
+import { CheckCircle2, AlertCircle, FileArchive, Send, Download, RefreshCw, Check } from "lucide-react";
 
 export default function ContadorPage() {
   const [exporting, setExporting] = useState(false);
@@ -96,7 +96,7 @@ export default function ContadorPage() {
               <div className="mt-6 flex items-center justify-between rounded-2xl border border-border bg-surface-muted p-5">
                 <div className="flex items-center gap-3">
                   <span className="grid h-12 w-12 place-items-center rounded-xl bg-lime-soft text-lime">
-                    <FileZip className="h-6 w-6" />
+                    <FileArchive className="h-6 w-6" />
                   </span>
                   <div>
                     <div className="text-sm font-semibold text-text">Fechamento_Maio_2026.zip</div>

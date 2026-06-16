@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 :root {
-  /* Monetra dark glassmorphism mode */
-  --bg: #030712;
-  --surface: rgba(17, 24, 39, 0.45);
-  --surface-muted: rgba(31, 41, 55, 0.35);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.15);
+  /* Monetra dark glassmorphism mode - Thick Glass */
+  --bg: rgba(3, 7, 18, 0.8);
+  --surface: rgba(15, 23, 42, 0.6);
+  --surface-muted: rgba(31, 41, 55, 0.45);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.22);
   --text: #f9fafb;
   --text-soft: #9ca3af;
   --text-faint: #6b7280;
@@ -47,7 +47,8 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: var(--bg);
+  background-color: #02040a; /* Fallback solid */
+  background-image: radial-gradient(circle at center, rgba(3, 7, 18, 0.8) 0%, rgba(2, 4, 10, 0.9) 100%);
   color: var(--text);
   font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif;
   overflow-x: hidden;
@@ -74,31 +75,33 @@ select {
 /* Sombra suave de card (Glass Glow) */
 .soft-glow {
   box-shadow:
-    0 4px 30px rgba(0, 0, 0, 0.4),
-    inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    0 10px 40px rgba(0, 0, 0, 0.65),
+    inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
 .card-hover {
   transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 .card-hover:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25) !important;
   box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.5),
-    0 0 15px rgba(159, 232, 112, 0.05),
-    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    0 15px 50px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(159, 232, 112, 0.08),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Glassmorphism Overrides */
 .bg-surface {
   background-color: var(--surface) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  backdrop-filter: blur(28px) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(210%) !important;
+  border: 1px solid var(--border) !important;
 }
 
 .bg-surface-muted {
   background-color: var(--surface-muted) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 

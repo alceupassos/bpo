@@ -13,8 +13,16 @@ const baseOptions: ApexOptions = {
     fontFamily: "Inter, Segoe UI, Arial, sans-serif",
     animations: {
       enabled: true,
-      easing: "easeinout",
-      speed: 450
+      easing: "easeout",
+      speed: 800,
+      animateGradually: {
+        enabled: true,
+        delay: 150
+      },
+      dynamicAnimation: {
+        enabled: true,
+        speed: 350
+      }
     }
   },
   grid: {

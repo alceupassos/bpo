@@ -9,6 +9,8 @@ export const navItems: NavItem[] = [
   { href: "/produtos", label: "Produtos", icon: "package" },
   { href: "/caixa", label: "Caixa", icon: "calculator" },
   { href: "/conciliacao", label: "Conciliacao", icon: "scale" },
+  { href: "/fiscal-trabalhista", label: "Fiscal/Trab", icon: "percent" },
+  { href: "/contador", label: "Contador", icon: "briefcase" },
   { href: "/whatsapp", label: "WhatsApp", icon: "message-circle" },
   { href: "/relatorios", label: "Relatorios", icon: "chart-column-big" },
   { href: "/painel-cliente", label: "Painel Cliente", icon: "monitor-dot" },
@@ -154,7 +156,7 @@ export const pageSummaries = {
   },
   "/contas-a-receber": {
     title: "Contas a Receber",
-    subtitle: "Carteira ativa com aging, follow-up e previsao de entrada.",
+    subtitle: "Carteira activa com aging, follow-up e previsao de entrada.",
     metrics: [
       { label: "Total a receber", value: "R$ 141.870" },
       { label: "Em atraso", value: "R$ 22.630" },
@@ -168,6 +170,24 @@ export const pageSummaries = {
       { label: "Importados", value: "684 movimentos" },
       { label: "Pendentes", value: "79" },
       { label: "Taxa automatica", value: "82,2%" }
+    ]
+  },
+  "/fiscal-trabalhista": {
+    title: "Fiscal & Trabalhista",
+    subtitle: "Controle de impostos Simples Nacional (DAS, DEFIS) e obrigacoes trabalhistas.",
+    metrics: [
+      { label: "DAS do mes", value: "R$ 4.250" },
+      { label: "Faturamento (12m)", value: "R$ 1.842.300" },
+      { label: "Funcionarios", value: "4 ativos" }
+    ]
+  },
+  "/contador": {
+    title: "Integracao Contador",
+    subtitle: "Modulo de fechamento contabil e exportacao de relatorios e XMLs.",
+    metrics: [
+      { label: "Mes de referencia", value: "Maio/2026" },
+      { label: "Status fechamento", value: "Pendente" },
+      { label: "Notas exportadas", value: "118 emitidas" }
     ]
   },
   "/ocr-documentos": {
@@ -276,4 +296,29 @@ export const iconMap = {
   "Conciliacao pendente": Landmark,
   "SLA medio (dias)": TimerReset,
   "Automacao (%)": BellRing
+};
+
+export const dasTaxRows: TableRow[] = [
+  { periodo: "05/2026", imposto: "DAS - Simples Nacional", vencimento: "20/06/2026", valor: "R$ 4.250,00", status: "A vencer" },
+  { periodo: "04/2026", imposto: "DAS - Simples Nacional", vencimento: "20/05/2026", valor: "R$ 4.110,00", status: "Pago" },
+  { periodo: "03/2026", imposto: "DAS - Simples Nacional", vencimento: "20/04/2026", valor: "R$ 3.890,00", status: "Pago" },
+  { periodo: "02/2026", imposto: "DAS - Simples Nacional", vencimento: "20/03/2026", valor: "R$ 3.450,00", status: "Pago" }
+];
+
+export const employeePayrollRows: TableRow[] = [
+  { funcionario: "Ana Silva", cargo: "Analista de Suporte", salario: "R$ 3.200,00", fgts: "Conciliado", status: "Pago" },
+  { funcionario: "Carlos Oliveira", cargo: "Desenvolvedor Junior", salario: "R$ 4.500,00", fgts: "Conciliado", status: "Pago" },
+  { funcionario: "Juliana Santos", cargo: "Designer", salario: "R$ 3.800,00", fgts: "Pendente", status: "A vencer" },
+  { funcionario: "Roberto Lima", cargo: "Auxiliar Administrativo", salario: "R$ 2.100,00", fgts: "Conciliado", status: "Pago" }
+];
+
+export const accountantExportLogs: TableRow[] = [
+  { mes: "Maio/2026", tipo: "Completo (XML + Extrato)", data: "15/06/2026 10:24", destinatario: "Contabilidade Alfa", status: "Conciliado" },
+  { mes: "Abril/2026", tipo: "Completo (XML + Extrato)", data: "13/05/2026 14:11", destinatario: "Contabilidade Alfa", status: "Conciliado" },
+  { mes: "Março/2026", tipo: "Completo (XML + Extrato)", data: "14/04/2026 09:43", destinatario: "Contabilidade Alfa", status: "Conciliado" }
+];
+
+export const billingHistory12m = {
+  categories: ["Jun/25", "Jul/25", "Ago/25", "Set/25", "Out/25", "Nov/25", "Dez/25", "Jan/26", "Fev/26", "Mar/26", "Abr/26", "Mai/26"],
+  values: [120000, 134000, 142000, 139000, 155000, 161000, 192000, 130000, 138000, 151000, 168000, 172300]
 };

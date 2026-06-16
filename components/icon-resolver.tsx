@@ -13,7 +13,9 @@ import {
   ScanText,
   Scale,
   Settings2,
-  Wallet
+  Wallet,
+  Percent,
+  Briefcase
 } from "lucide-react";
 
 const icons = {
@@ -28,7 +30,9 @@ const icons = {
   package: Package,
   calculator: Calculator,
   "receipt-text": ReceiptText,
-  "message-circle": MessageCircle
+  "message-circle": MessageCircle,
+  percent: Percent,
+  briefcase: Briefcase
 };
 
 export function IconResolver({

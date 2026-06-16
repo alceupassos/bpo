@@ -21,9 +21,14 @@ export function DashboardScreen({ summary }: { summary?: DashboardSummary | null
         { ...dashboardKpis[0], value: formatBRL(summary.saldoProjetado) },
         { ...dashboardKpis[1], value: formatBRL(summary.aPagar) },
         { ...dashboardKpis[2], value: formatBRL(summary.aReceber) },
-        { ...dashboardKpis[3], value: formatBRL(summary.inadimplencia) }
+        { label: "Impostos a vencer (DAS)", value: "R$ 4.250,00", delta: "Vence em 20/06", trend: "down", sparkline: [40, 42, 38, 35, 41] }
       ]
-    : dashboardKpis.slice(0, 4);
+    : [
+        dashboardKpis[0],
+        dashboardKpis[1],
+        dashboardKpis[2],
+        { label: "Impostos a vencer (DAS)", value: "R$ 4.250,00", delta: "Vence em 20/06", trend: "down", sparkline: [40, 42, 38, 35, 41] }
+      ];
 
   const saldoTotal = summary ? formatBRL(summary.saldoProjetado) : "R$ 146.980";
   const chips = [
@@ -67,6 +72,18 @@ export function DashboardScreen({ summary }: { summary?: DashboardSummary | null
                 {saldoTotal}
               </div>
               <div className="mt-1 text-xs text-text-faint">Projecao consolidada</div>
+              
+              {/* RBT12 Progression tracker */}
+              <div className="mt-4 border-t border-border pt-4">
+                <div className="flex justify-between text-[11px] text-text-soft font-medium">
+                  <span>Faturamento RBT12</span>
+                  <span>R$ 1.842.300 / R$ 4,8M</span>
+                </div>
+                <div className="mt-1.5 h-1.5 w-full rounded-full bg-surface-muted overflow-hidden">
+                  <div className="h-full rounded-full bg-lime" style={{ width: "38.3%" }} />
+                </div>
+              </div>
+
               <div className="mt-5 grid grid-cols-3 gap-2">
                 {chips.map((c) => (
                   <div key={c.label} className="rounded-2xl border border-border bg-surface-muted p-3">

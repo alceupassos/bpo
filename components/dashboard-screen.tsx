@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import type { ApexOptions } from "apexcharts";
 import { ArrowDownLeft, ArrowUpRight, Plus } from "lucide-react";
 import { dashboardKpis } from "@/lib/data";
 import type { DashboardSummary } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
-import { ApexChart } from "@/components/apex-chart";
+import { RechartsChart } from "@/components/recharts-chart";
 import { ContactsRow } from "@/components/contacts-row";
 import { CtaCard } from "@/components/cta-card";
 import { KpiCard } from "@/components/kpi-card";
@@ -41,13 +40,13 @@ export function DashboardScreen({ summary }: { summary?: DashboardSummary | null
   const fluxoTotal = summary ? formatBRL(summary.aReceber - summary.aPagar + summary.recebido) : "R$ 342.323";
   const incomeData = [96, 26, 88, 91, 58, 80, 41, 89, 74, 57, 92, 34].map((v) => v * 1000);
   const highlight = 5;
-  const incomeOptions: ApexOptions = {
+  const incomeOptions: any = {
     colors: incomeData.map((_, i) => (i === highlight ? "#9fe870" : "rgba(255, 255, 255, 0.15)")),
     plotOptions: { bar: { distributed: true, borderRadius: 10, columnWidth: "55%" } },
     legend: { show: false },
     xaxis: { categories: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"] },
-    yaxis: { labels: { formatter: (v) => `${Math.round(v / 1000)}k` } },
-    tooltip: { theme: "dark", y: { formatter: (v) => formatBRL(v) } }
+    yaxis: { labels: { formatter: (v: number) => `${Math.round(v / 1000)}k` } },
+    tooltip: { theme: "dark", y: { formatter: (v: number) => formatBRL(v) } }
   };
 
   return (
@@ -121,7 +120,7 @@ export function DashboardScreen({ summary }: { summary?: DashboardSummary | null
             <button className="rounded-full px-6 py-2.5 text-sm text-text-soft transition-colors hover:text-text">Saidas</button>
             <button className="rounded-full px-6 py-2.5 text-sm text-text-soft transition-colors hover:text-text">Saldo</button>
           </div>
-          <ApexChart type="bar" height={340} series={[{ name: "Fluxo", data: incomeData }]} options={incomeOptions} />
+          <RechartsChart type="bar" height={340} series={[{ name: "Fluxo", data: incomeData }]} options={incomeOptions} />
         </section>
       </div>
 

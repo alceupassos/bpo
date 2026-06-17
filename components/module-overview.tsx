@@ -1,7 +1,6 @@
 "use client";
 
-import type { ApexOptions } from "apexcharts";
-import { ApexChart } from "@/components/apex-chart";
+import { RechartsChart } from "@/components/recharts-chart";
 import { ChartCard } from "@/components/chart-card";
 import { DataTable } from "@/components/data-table";
 import { TiltWrapper } from "@/components/tilt-wrapper";
@@ -30,8 +29,8 @@ export function ModuleOverview({
   tableRows: Record<string, string>[];
   chartTitle: string;
   chartMeta: string;
-  chartSeries: ApexAxisChartSeries | ApexNonAxisChartSeries;
-  chartOptions: ApexOptions;
+  chartSeries: any;
+  chartOptions: any;
   chartType?: "line" | "area" | "bar" | "donut";
   sideTitle?: string;
   sideCopy?: string;
@@ -60,7 +59,7 @@ export function ModuleOverview({
           <DataTable columns={tableColumns} rows={tableRows} />
         </ChartCard>
         <ChartCard title={chartTitle} meta={chartMeta}>
-          <ApexChart type={chartType} height={300} series={chartSeries} options={chartOptions} />
+          <RechartsChart type={chartType} height={300} series={chartSeries} options={chartOptions} />
         </ChartCard>
       </div>
     </div>

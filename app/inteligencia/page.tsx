@@ -1,5 +1,4 @@
-import { DashboardTopNav } from "@/components/dashboard-top-nav";
-import { ApexChart } from "@/components/apex-chart";
+import { RechartsChart } from "@/components/recharts-chart";
 import { ChartCard } from "@/components/chart-card";
 import { PageShell } from "@/components/page-shell";
 import {
@@ -46,12 +45,11 @@ export default async function InteligenciaPage({
     <PageShell
       title="IA Financeira"
       subtitle="Recursos de IA open-source: copiloto, previsão de caixa, detecção de anomalias e alertas inteligentes — todos com fallback determinístico."
-      topNav={<DashboardTopNav />}
     >
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <div className="space-y-6">
           <ChartCard title="Previsão de fluxo de caixa" meta="Regressão linear (open-source) — próximos 3 meses">
-            <ApexChart
+            <RechartsChart
               type="line"
               height={260}
               series={series as never}

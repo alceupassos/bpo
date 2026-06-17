@@ -1,9 +1,8 @@
 "use client";
 
-import type { ApexOptions } from "apexcharts";
 import { clientHistoryRows, clientPendingRows } from "@/lib/data";
 import type { TableRow } from "@/lib/types";
-import { ApexChart } from "@/components/apex-chart";
+import { RechartsChart } from "@/components/recharts-chart";
 import { ChartCard } from "@/components/chart-card";
 import { DataTable } from "@/components/data-table";
 
@@ -25,18 +24,16 @@ export function ClientPanelScreen({
   const pendingRows = pending ?? clientPendingRows;
   const historyRows = history ?? clientHistoryRows;
 
-  const lineOptions: ApexOptions = {
+  const lineOptions: any = {
     colors: ["#9fe870"],
-    fill: { type: "gradient", gradient: { shadeIntensity: 0.4, opacityFrom: 0.4, opacityTo: 0.05 } },
     xaxis: { categories: ["18/05", "19/05", "20/05", "21/05", "22/05", "23/05", "24/05"] },
     legend: { show: false }
   };
 
-  const donutOptions: ApexOptions = {
+  const donutOptions: any = {
     labels: ["A vencer", "Vencido", "Pago"],
     colors: ["#9fe870", "#ef4444", "#c7d2cf"],
-    legend: { position: "right" },
-    stroke: { width: 0 }
+    legend: { position: "right" }
   };
 
   return (
@@ -52,7 +49,7 @@ export function ClientPanelScreen({
 
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <ChartCard title="Resumo do mes" meta="Entradas e saidas dos ultimos 7 dias">
-          <ApexChart
+          <RechartsChart
             type="area"
             height={260}
             series={[{ name: "Saldo", data: [142000, 153400, 161200, 155900, 176300, 171800, 182450] }]}
@@ -60,7 +57,7 @@ export function ClientPanelScreen({
           />
         </ChartCard>
         <ChartCard title="Composicao do pagar" meta="Leitura simplificada para o cliente">
-          <ApexChart type="donut" height={260} series={[64, 18, 18]} options={donutOptions} />
+          <RechartsChart type="donut" height={260} series={[64, 18, 18]} options={donutOptions} />
         </ChartCard>
       </div>
 

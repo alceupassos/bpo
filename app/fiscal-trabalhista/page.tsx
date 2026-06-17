@@ -1,16 +1,14 @@
 "use client";
 
 import React from "react";
-import type { ApexOptions } from "apexcharts";
-import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { PageShell } from "@/components/page-shell";
 import { ChartCard } from "@/components/chart-card";
 import { DataTable } from "@/components/data-table";
-import { ApexChart } from "@/components/apex-chart";
+import { RechartsChart } from "@/components/recharts-chart";
 import { TiltWrapper } from "@/components/tilt-wrapper";
 import { dasTaxRows, employeePayrollRows, billingHistory12m } from "@/lib/data";
 import { formatBRL } from "@/lib/formatters";
-import { Download, UploadCloud, Users, ShieldAlert, BadgePercent, Landmark } from "lucide-react";
+import { Download, UploadCloud, Users, BadgePercent, Landmark } from "lucide-react";
 
 export default function FiscalTrabalhistaPage() {
   // RBT12 total billing calculation
@@ -19,7 +17,7 @@ export default function FiscalTrabalhistaPage() {
   const percentageOfLimit = (totalRBT12 / limitSimples) * 100;
 
   // Chart configuration for last 12 months revenue
-  const chartOptions: ApexOptions = {
+  const chartOptions: any = {
     colors: ["#9fe870"],
     fill: {
       type: "gradient",
@@ -34,12 +32,12 @@ export default function FiscalTrabalhistaPage() {
     },
     yaxis: {
       labels: {
-        formatter: (v) => `R$ ${Math.round(v / 1000)}k`
+        formatter: (v: number) => `R$ ${Math.round(v / 1000)}k`
       }
     },
     tooltip: {
       y: {
-        formatter: (v) => formatBRL(v)
+        formatter: (v: number) => formatBRL(v)
       }
     }
   };
@@ -61,7 +59,6 @@ export default function FiscalTrabalhistaPage() {
     <PageShell
       title="Fiscal & Trabalhista"
       subtitle="Obrigacoes do Simples Nacional, guias de DAS, folha de pagamento e monitoramento do limite RBT12."
-      topNav={<DashboardTopNav />}
     >
       {/* Metrics Header */}
       <div className="grid gap-4 md:grid-cols-3">
@@ -110,7 +107,7 @@ export default function FiscalTrabalhistaPage() {
 
               {/* Chart of billing history */}
               <div className="mt-6">
-                <ApexChart type="area" height={240} series={chartSeries} options={chartOptions} />
+                <RechartsChart type="area" height={240} series={chartSeries} options={chartOptions} />
               </div>
             </section>
           </TiltWrapper>

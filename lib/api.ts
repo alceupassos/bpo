@@ -229,6 +229,127 @@ export const getChatThreads = () => apiGet<ChatThread[]>("/chat/threads");
 export const getChatMessages = (threadId: string) =>
   apiGet<ChatMessage[]>(`/chat/threads/${threadId}/messages`);
 
+// ---- Novos módulos (fornecedores, clientes, fiscal, folha, societário, contador, IA) ----
+
+export interface Supplier {
+  id: string;
+  companyId: string;
+  name: string;
+  cnpj: string | null;
+  email: string | null;
+  phone: string | null;
+  category: string | null;
+}
+
+export interface Customer {
+  id: string;
+  companyId: string;
+  name: string;
+  document: string | null;
+  phone: string | null;
+  email: string | null;
+  qrToken: string | null;
+  creditLimit: number;
+  balance: number;
+}
+
+export interface TaxObligation {
+  id: string;
+  companyId: string;
+  type: string;
+  competence: string;
+  dueDate: string;
+  amount: number;
+  baseRevenue: number;
+  status: string;
+  paidDate: string | null;
+}
+
+export interface PayrollRun {
+  id: string;
+  competence: string;
+  baseSalary: number;
+  fgts: number;
+  inss: number;
+  netPay: number;
+  vacationDue: number;
+  esocialStatus: string;
+  status: string;
+  employee?: { name: string; role: string | null };
+}
+
+export interface Employee {
+  id: string;
+  name: string;
+  cpf: string | null;
+  role: string | null;
+  salary: number;
+  status: string;
+}
+
+export interface CorporateDoc {
+  id: string;
+  type: string;
+  title: string;
+  issueDate: string | null;
+  expiryDate: string | null;
+}
+
+export interface AccountingExport {
+  id: string;
+  competence: string;
+  format: string;
+  status: string;
+  notesCount: number;
+  entriesCount: number;
+  payrollCount: number;
+  generatedAt: string | null;
+}
+
+export interface Faturamento12m {
+  categories: string[];
+  faturamento: number[];
+  total12m: number;
+  teto: number;
+  percentualTeto: number;
+}
+
+export interface ForecastResult {
+  history: { categories: string[]; net: number[] };
+  forecast: { categories: string[]; net: number[] };
+  method: string;
+}
+
+export interface AnomalyResult {
+  total: number;
+  findings: { type: string; severity: string; description: string }[];
+}
+
+export interface AlertsResult {
+  total: number;
+  alerts: { kind: string; title: string; dueDate: string; amount: number; risk: number }[];
+}
+
+export interface MonthlySummary {
+  summary: string;
+  data: { entrou: number; saiu: number; sobra: number };
+  source: string;
+}
+
+export const getSuppliers = () => apiGet<Supplier[]>("/suppliers");
+export const getCustomers = () => apiGet<Customer[]>("/customers");
+export const getTaxObligations = () => apiGet<TaxObligation[]>("/tax-obligations");
+export const getTaxSummary = () => apiGet<Record<string, unknown>>("/tax-obligations/summary");
+export const getPayrollRuns = () => apiGet<PayrollRun[]>("/payroll/runs");
+export const getEmployees = () => apiGet<Employee[]>("/payroll/employees");
+export const getCorporateDocs = () => apiGet<CorporateDoc[]>("/corporate/docs");
+export const getAccountingExports = () => apiGet<AccountingExport[]>("/accounting/exports");
+export const getFaturamento12m = () => apiGet<Faturamento12m>("/dashboard/faturamento-12m");
+export const getForecast = () => apiGet<ForecastResult>("/ai/forecast");
+export const getAnomalies = () => apiGet<AnomalyResult>("/ai/anomalies");
+export const getAlerts = () => apiGet<AlertsResult>("/ai/alerts");
+export const getMonthlySummary = () => apiGet<MonthlySummary>("/ai/monthly-summary");
+
 /** POST autenticado (JSON) — usado por server actions. */
 export async function apiPost<T>(path: string, body?: unknown): Promise<T | null> {
   try {

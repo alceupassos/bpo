@@ -1,7 +1,17 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UploadedFile,
+  UseInterceptors
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { companyScope, CurrentUser } from "../auth/current-user.decorator";
 import type { DecodedJwt } from "../auth/jwt.util";
+import type { UploadedFileLike } from "../documents/storage.service";
 import { CashService } from "./cash.service";
 
 class OpenCashDto {
@@ -53,5 +63,11 @@ export class CashController {
   @Post("entries/:id")
   addEntry(@Param("id") id: string, @Body() body: CashEntryDto) {
     return this.cashService.addEntry(id, body.type, body.amount, body.description, body.paymentMethod);
+  }
+
+  @Post("receipt/:id")
+  @UseInterceptors(FileInterceptor("file"))
+  receipt(@Param("id") id: string, @UploadedFile() file: UploadedFileLike) {
+    return this.cashService.receipt(id, file);
   }
 }

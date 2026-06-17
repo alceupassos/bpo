@@ -184,7 +184,15 @@ async function main() {
     { name: "Sonho Recheado", unit: "UN", price: 7.5, category: "Padaria" }
   ];
   await prisma.product.createMany({
-    data: prods.map((p, i) => ({ id: `prod-${i + 1}`, companyId: "company-1", barcode: `789${between(1000000, 9999999)}`, ...p })) as never
+    data: prods.map((p, i) => ({
+      id: `prod-${i + 1}`,
+      companyId: "company-1",
+      barcode: `789${between(1000000, 9999999)}`,
+      stockQty: between(0, 120),
+      minStock: 10,
+      cost: Math.round(p.price * 0.7 * 100) / 100,
+      ...p
+    })) as never
   });
 
   // Nota fiscal exemplo (em revisão) com itens
@@ -231,6 +239,75 @@ async function main() {
         ]
       }
     }
+  });
+
+  // Fornecedores cadastrados (company-1)
+  await prisma.supplier.createMany({
+    data: [
+      { id: "sup-1", companyId: "company-1", name: "Martins Distribuicao", cnpj: "11.222.333/0001-44", category: "Mercearia" },
+      { id: "sup-2", companyId: "company-1", name: "Posto Litoral", cnpj: "22.333.444/0001-55", category: "Combustivel" },
+      { id: "sup-3", companyId: "company-1", name: "Padaria Trigo Dourado", cnpj: "33.444.555/0001-66", category: "Padaria" },
+      { id: "sup-4", companyId: "company-1", name: "Bebidas Litoral", cnpj: "44.555.666/0001-77", category: "Bebidas" }
+    ] as never
+  });
+
+  // Clientes do crediario, identificaveis por QR no caixa
+  await prisma.customer.createMany({
+    data: [
+      { id: "cus-1", companyId: "company-1", name: "Joao da Silva", document: "111.222.333-44", phone: "+55 11 98888-0001", qrToken: "QR-JOAO-001", creditLimit: 500, balance: 120 },
+      { id: "cus-2", companyId: "company-1", name: "Maria Souza", document: "222.333.444-55", phone: "+55 11 98888-0002", qrToken: "QR-MARIA-002", creditLimit: 800, balance: 0 },
+      { id: "cus-3", companyId: "company-1", name: "Pedro Lima", document: "333.444.555-66", phone: "+55 11 98888-0003", qrToken: "QR-PEDRO-003", creditLimit: 300, balance: 47.8 }
+    ] as never
+  });
+
+  // Obrigacoes fiscais: DAS dos ultimos meses + DEFIS anual
+  const dasMonths = [
+    { comp: "2026-03", off: -90, status: "PAGO" },
+    { comp: "2026-04", off: -60, status: "PAGO" },
+    { comp: "2026-05", off: -30, status: "PAGO" },
+    { comp: "2026-06", off: 4, status: "PENDENTE" }
+  ];
+  await prisma.taxObligation.createMany({
+    data: [
+      ...dasMonths.map((m, i) => ({
+        id: `das-${i + 1}`, companyId: "company-1", type: "DAS", competence: m.comp,
+        dueDate: dateOffset(m.off), amount: between(3800, 4600), baseRevenue: between(120000, 180000),
+        status: m.status, paidDate: m.status === "PAGO" ? dateOffset(m.off) : null
+      })),
+      { id: "defis-1", companyId: "company-1", type: "DEFIS", competence: "2025", dueDate: dateOffset(-10), amount: 0, baseRevenue: 1842300, status: "PAGO", paidDate: dateOffset(-12) }
+    ] as never
+  });
+
+  // Funcionarios + folha da competencia 2026-05
+  const employees = [
+    { id: "emp-1", companyId: "company-1", name: "Ana Paula", cpf: "123.456.789-00", role: "Atendente", salary: 1850, admissionDate: dateOffset(-400) },
+    { id: "emp-2", companyId: "company-1", name: "Bruno Carvalho", cpf: "234.567.890-11", role: "Caixa", salary: 1700, admissionDate: dateOffset(-220) },
+    { id: "emp-3", companyId: "company-1", name: "Carla Dias", cpf: "345.678.901-22", role: "Padeira", salary: 2200, admissionDate: dateOffset(-600) }
+  ];
+  await prisma.employee.createMany({ data: employees as never });
+  await prisma.payrollEntry.createMany({
+    data: employees.map((e, i) => ({
+      id: `pay-run-${i + 1}`, companyId: "company-1", employeeId: e.id, competence: "2026-05",
+      baseSalary: e.salary, fgts: Math.round(e.salary * 0.08 * 100) / 100, inss: Math.round(e.salary * 0.09 * 100) / 100,
+      netPay: Math.round(e.salary * 0.91 * 100) / 100, vacationDue: Math.round((e.salary / 12) * 100) / 100,
+      esocialStatus: "ENVIADO", status: "PAGA"
+    })) as never
+  });
+
+  // Documentos societarios
+  await prisma.corporateDoc.createMany({
+    data: [
+      { id: "doc-soc-1", companyId: "company-1", type: "CONTRATO_SOCIAL", title: "Contrato Social - 3a alteracao", issueDate: dateOffset(-700) },
+      { id: "doc-soc-2", companyId: "company-1", type: "CERTIFICADO_DIGITAL", title: "Certificado e-CNPJ A1", issueDate: dateOffset(-300), expiryDate: dateOffset(40) },
+      { id: "doc-soc-3", companyId: "company-1", type: "PROCURACAO", title: "Procuracao contador", issueDate: dateOffset(-200), expiryDate: dateOffset(160) }
+    ] as never
+  });
+
+  // Pacote de exportacao para o contador
+  await prisma.accountingExport.createMany({
+    data: [
+      { id: "exp-1", companyId: "company-1", competence: "2026-05", format: "ZIP", status: "GERADO", notesCount: 1, entriesCount: 34, payrollCount: 3, storagePath: "storage/exports/company-1-2026-05.zip", generatedAt: dateOffset(-2) }
+    ] as never
   });
 
   console.log("Seed concluido.");

@@ -2,13 +2,17 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AiVisionService } from "../ai/ai-vision.service";
 import { StorageService, type UploadedFileLike } from "../documents/storage.service";
+import { ProductsService } from "../products/products.service";
+import { SuppliersService } from "../suppliers/suppliers.service";
 
 @Injectable()
 export class FiscalNotesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
-    private readonly vision: AiVisionService
+    private readonly vision: AiVisionService,
+    private readonly suppliers: SuppliersService,
+    private readonly products: ProductsService
   ) {}
 
   list(companyId?: string | null) {
@@ -81,35 +85,100 @@ export class FiscalNotesService {
         dueDate: note.issueDate ?? new Date()
       }
     });
-    await this.prisma.fiscalNote.update({ where: { id }, data: { status: "APPROVED" } });
+    await this.prisma.fiscalNote.update({ where: { id }, data: { status: "APPROVED", posted: true } });
     return { id, posted: true, entryId: entry.id };
   }
 
-  /** Cadastra/atualiza produtos a partir dos itens da nota. */
-  async registerProducts(id: string, companyId?: string | null) {
+  /** Cadastra/atualiza produtos a partir dos itens da nota, dando ENTRADA no estoque. */
+  async registerProducts(id: string, companyId?: string | null, supplierId?: string) {
     const note = await this.prisma.fiscalNote.findUnique({ where: { id }, include: { items: true } });
-    if (!note) return { id, created: 0 };
+    if (!note) return { id, created: 0, restocked: 0 };
+    const scope = companyId ?? note.companyId;
     let created = 0;
+    let restocked = 0;
     for (const item of note.items) {
       if (!item.description) continue;
       const existing = await this.prisma.product.findFirst({
-        where: { companyId: companyId ?? note.companyId, name: item.description }
+        where: { companyId: scope, name: item.description }
       });
+      let productId: string;
       if (existing) {
-        await this.prisma.product.update({ where: { id: existing.id }, data: { price: item.unitPrice } });
+        await this.prisma.product.update({
+          where: { id: existing.id },
+          data: { cost: item.unitPrice, ...(supplierId ? { supplierId } : {}) }
+        });
+        productId = existing.id;
       } else {
         const product = await this.prisma.product.create({
           data: {
-            companyId: companyId ?? note.companyId,
+            companyId: scope,
             name: item.description,
             price: item.unitPrice,
-            sourceNoteId: note.id
+            cost: item.unitPrice,
+            sourceNoteId: note.id,
+            supplierId
           }
         });
         await this.prisma.noteItem.update({ where: { id: item.id }, data: { productId: product.id } });
+        productId = product.id;
         created += 1;
       }
+      // Entrada de estoque pela quantidade da nota.
+      await this.products.move(productId, "IN", item.qty || 0, {
+        reason: "Entrada por NF",
+        refType: "FISCAL_NOTE",
+        refId: note.id
+      });
+      restocked += 1;
     }
-    return { id, created };
+    return { id, created, restocked };
+  }
+
+  /**
+   * Pipeline completo (1 clique): cadastra/atualiza o fornecedor, dá entrada
+   * dos produtos no estoque, gera a saída no caixa (se houver caixa aberto) e
+   * lança o título a pagar. Reusa os services existentes.
+   */
+  async processFull(id: string, companyId?: string | null) {
+    const note = await this.prisma.fiscalNote.findUnique({ where: { id } });
+    if (!note) return { id, processed: false };
+    const scope = companyId ?? note.companyId;
+
+    const supplier = await this.suppliers.upsertFromNote(scope, {
+      name: note.supplierName,
+      cnpj: note.supplierCnpj
+    });
+
+    const products = await this.registerProducts(id, scope, supplier.id);
+    const posted = await this.post(id, scope);
+
+    // Saída no caixa aberto (compra paga pelo caixa), se existir.
+    const session = await this.prisma.cashSession.findFirst({
+      where: { companyId: scope, status: "OPEN" },
+      orderBy: { openedAt: "desc" }
+    });
+    let cashEntryId: string | null = null;
+    if (session && note.total > 0) {
+      const cashEntry = await this.prisma.cashEntry.create({
+        data: {
+          sessionId: session.id,
+          type: "OUT",
+          amount: note.total,
+          description: `Compra ${supplier.name}`,
+          paymentMethod: "Caixa",
+          noteId: note.id
+        }
+      });
+      cashEntryId = cashEntry.id;
+    }
+
+    return {
+      id,
+      processed: true,
+      supplierId: supplier.id,
+      products,
+      entryId: posted.entryId ?? null,
+      cashEntryId
+    };
   }
 }

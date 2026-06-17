@@ -13,7 +13,7 @@ export function Sidebar() {
   return (
     <aside className="sticky top-6 hidden h-[calc(100vh-3rem)] shrink-0 lg:block">
       <div className="flex h-full w-[68px] flex-col items-center justify-between rounded-[28px] border border-border bg-surface py-5 soft-glow">
-        <nav className="flex flex-col items-center gap-2" aria-label="Navegacao principal">
+        <nav className="no-scrollbar flex flex-col items-center gap-2 overflow-y-auto" aria-label="Navegacao principal">
           {navItems.map((item) => {
             const active = pathname === item.href;
             return (

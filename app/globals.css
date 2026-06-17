@@ -105,3 +105,32 @@ select {
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
+/* Esconde a scrollbar nativa mantendo o scroll por wheel/drag/teclado */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge legado */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge */
+  width: 0;
+  height: 0;
+}
+
+/* Fade nas bordas para sinalizar conteudo rolavel sem barra feia */
+.nav-fade {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+}
+

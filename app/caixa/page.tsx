@@ -4,7 +4,7 @@ import { DataTable } from "@/components/data-table";
 import { PageShell } from "@/components/page-shell";
 import { getCashCurrent } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
-import { addCashEntry, closeCash, openCash } from "./actions";
+import { addCashEntry, closeCash, openCash, uploadReceipt } from "./actions";
 
 const typeLabel: Record<string, string> = {
   SALE: "Venda",
@@ -115,6 +115,27 @@ export default async function CaixaPage() {
                   <button type="submit" className="w-full rounded-2xl bg-lime px-4 py-3 font-semibold text-ink transition-colors hover:bg-lime-strong">
                     Lancar movimento
                   </button>
+                </form>
+              </ChartCard>
+
+              <ChartCard title="Recibo automático" meta="Foto de café, gasolina, etc. → saída no caixa (IA)">
+                <form action={uploadReceipt} className="space-y-3">
+                  <input type="hidden" name="sessionId" value={session.id} />
+                  <input
+                    id="file"
+                    name="file"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    required
+                    className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-text-soft file:mr-3 file:rounded-xl file:border-0 file:bg-lime file:px-3 file:py-1.5 file:font-semibold file:text-ink"
+                  />
+                  <button type="submit" className="w-full rounded-2xl bg-lime px-4 py-3 font-semibold text-ink transition-colors hover:bg-lime-strong">
+                    Ler recibo e lançar saída
+                  </button>
+                  <p className="text-[11px] text-text-faint">
+                    Sem IA configurada, o lançamento entra como “conferir” para revisão manual — nunca trava.
+                  </p>
                 </form>
               </ChartCard>
 

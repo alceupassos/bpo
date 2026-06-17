@@ -23,8 +23,13 @@ export class BankingController {
   }
 
   @Post("reconciliations/suggest")
-  suggestMatch() {
-    return this.bankingService.suggestMatch();
+  suggestMatch(@CurrentUser() user?: DecodedJwt) {
+    return this.bankingService.suggestMatch(companyScope(user));
+  }
+
+  @Post("reconciliations/auto")
+  autoReconcile(@CurrentUser() user?: DecodedJwt) {
+    return this.bankingService.autoReconcile(companyScope(user));
   }
 
   @Post("reconciliations/confirm/:transactionId")

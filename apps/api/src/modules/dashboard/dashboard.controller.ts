@@ -16,4 +16,9 @@ export class DashboardController {
   cashflow(@CurrentUser() user?: DecodedJwt) {
     return this.dashboardService.cashflow(companyScope(user));
   }
+
+  @Get("faturamento-12m")
+  faturamento12m(@CurrentUser() user?: DecodedJwt) {
+    return this.dashboardService.faturamento12m(companyScope(user));
+  }
 }

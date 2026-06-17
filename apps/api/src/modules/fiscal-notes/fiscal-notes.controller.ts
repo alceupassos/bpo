@@ -62,4 +62,9 @@ export class FiscalNotesController {
   registerProducts(@Param("id") id: string, @CurrentUser() user?: DecodedJwt) {
     return this.service.registerProducts(id, companyScope(user));
   }
+
+  @Post(":id/process-full")
+  processFull(@Param("id") id: string, @CurrentUser() user?: DecodedJwt) {
+    return this.service.processFull(id, companyScope(user));
+  }
 }

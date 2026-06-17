@@ -82,6 +82,67 @@ enum MessageDirection {
   OUT
 }
 
+enum NoteDirection {
+  RECEBIDA
+  EMITIDA
+}
+
+enum TaxObligationType {
+  DAS
+  DEFIS
+  OUTRO
+}
+
+enum ObligationStatus {
+  PENDENTE
+  PAGO
+  ATRASADO
+}
+
+enum EmployeeStatus {
+  ATIVO
+  FERIAS
+  AFASTADO
+  DESLIGADO
+}
+
+enum PayrollStatus {
+  ABERTA
+  FECHADA
+  PAGA
+}
+
+enum EsocialStatus {
+  PENDENTE
+  ENVIADO
+}
+
+enum CorporateDocType {
+  CONTRATO_SOCIAL
+  CERTIFICADO_DIGITAL
+  PROCURACAO
+  ALVARA
+  OUTRO
+}
+
+enum ExportFormat {
+  XML
+  CSV
+  ZIP
+}
+
+enum ExportStatus {
+  PENDENTE
+  GERADO
+  ENVIADO
+}
+
+enum StockMoveType {
+  IN
+  OUT
+  ADJUST
+}
+
 model Company {
   id        String   @id @default(cuid())
   legalName String
@@ -196,6 +257,10 @@ model Product {
   barcode      String?
   unit         String   @default("UN")
   price        Float    @default(0)
+  cost         Float    @default(0)
+  stockQty     Float    @default(0)
+  minStock     Float    @default(0)
+  supplierId   String?
   category     String?
   sourceNoteId String?
   createdAt    DateTime @default(now())
@@ -206,15 +271,18 @@ model Product {
 model FiscalNote {
   id           String           @id @default(cuid())
   companyId    String
+  direction    NoteDirection    @default(RECEBIDA)
   type         NoteType         @default(OUTRO)
   supplierName String?
   supplierCnpj String?
+  customerName String?
   total        Float            @default(0)
   issueDate    DateTime?
   status       DocumentStatus   @default(NEEDS_REVIEW)
   source       ExtractionSource @default(MANUAL)
   storagePath  String?
   rawText      String?
+  posted       Boolean          @default(false)
   createdAt    DateTime         @default(now())
   items        NoteItem[]
 
@@ -285,4 +353,141 @@ model ChatMessage {
   thread    ChatThread       @relation(fields: [threadId], references: [id], onDelete: Cascade)
 
   @@index([threadId])
+}
+
+// Fornecedores cadastrados (auto-criados a partir das NFs recebidas).
+model Supplier {
+  id        String   @id @default(cuid())
+  companyId String
+  name      String
+  cnpj      String?
+  email     String?
+  phone     String?
+  category  String?
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+}
+
+// Clientes cadastrados que podem ser identificados por biometria/QR no caixa.
+model Customer {
+  id             String   @id @default(cuid())
+  companyId      String
+  name           String
+  document       String?
+  phone          String?
+  email          String?
+  // Descritor facial (vetor de 128 floats serializado em JSON) — face-api.js.
+  faceDescriptor String?
+  // Credencial WebAuthn (id base64) para digital/biometria de plataforma.
+  webauthnCredId String?
+  // Token estável embutido no QR Code do cliente.
+  qrToken        String?  @unique
+  creditLimit    Float    @default(0)
+  balance        Float    @default(0)
+  createdAt      DateTime @default(now())
+
+  @@index([companyId])
+}
+
+// Movimentos de estoque (entrada por NF, saída por venda/caixa, ajuste manual).
+model StockMovement {
+  id        String        @id @default(cuid())
+  companyId String
+  productId String
+  type      StockMoveType
+  qty       Float
+  reason    String?
+  refType   String?
+  refId     String?
+  createdAt DateTime      @default(now())
+
+  @@index([companyId])
+  @@index([productId])
+}
+
+// Obrigações fiscais do Simples: DAS mensal, DEFIS anual e afins.
+model TaxObligation {
+  id          String            @id @default(cuid())
+  companyId   String
+  type        TaxObligationType @default(DAS)
+  competence  String // "AAAA-MM" (DAS) ou "AAAA" (DEFIS)
+  dueDate     DateTime
+  amount      Float             @default(0)
+  baseRevenue Float             @default(0)
+  status      ObligationStatus  @default(PENDENTE)
+  paidDate    DateTime?
+  receiptPath String?
+  notes       String?
+  createdAt   DateTime          @default(now())
+
+  @@index([companyId])
+}
+
+// Funcionários (folha/trabalhista, quando a empresa tem empregados).
+model Employee {
+  id            String         @id @default(cuid())
+  companyId     String
+  name          String
+  cpf           String?
+  role          String?
+  admissionDate DateTime?
+  salary        Float          @default(0)
+  status        EmployeeStatus @default(ATIVO)
+  createdAt     DateTime       @default(now())
+  payroll       PayrollEntry[]
+
+  @@index([companyId])
+}
+
+// Competências de folha por funcionário (salário, FGTS, INSS, férias, eSocial).
+model PayrollEntry {
+  id            String        @id @default(cuid())
+  companyId     String
+  employeeId    String
+  competence    String // "AAAA-MM"
+  baseSalary    Float         @default(0)
+  fgts          Float         @default(0)
+  inss          Float         @default(0)
+  netPay        Float         @default(0)
+  vacationDue   Float         @default(0)
+  esocialStatus EsocialStatus @default(PENDENTE)
+  status        PayrollStatus @default(ABERTA)
+  createdAt     DateTime      @default(now())
+  employee      Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([employeeId])
+}
+
+// Documentos societários: contrato social, certificados digitais, procurações.
+model CorporateDoc {
+  id          String           @id @default(cuid())
+  companyId   String
+  type        CorporateDocType @default(OUTRO)
+  title       String
+  issueDate   DateTime?
+  expiryDate  DateTime?
+  storagePath String?
+  notes       String?
+  createdAt   DateTime         @default(now())
+
+  @@index([companyId])
+}
+
+// Pacotes de exportação para o contador (XML/CSV/ZIP por competência).
+model AccountingExport {
+  id           String       @id @default(cuid())
+  companyId    String
+  competence   String // "AAAA-MM"
+  format       ExportFormat @default(ZIP)
+  status       ExportStatus @default(PENDENTE)
+  notesCount   Int          @default(0)
+  entriesCount Int          @default(0)
+  payrollCount Int          @default(0)
+  storagePath  String?
+  generatedAt  DateTime?
+  createdAt    DateTime     @default(now())
+
+  @@index([companyId])
 }

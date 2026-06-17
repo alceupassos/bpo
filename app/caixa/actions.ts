@@ -1,7 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { apiPost } from "@/lib/api";
+import { apiPost, apiUpload } from "@/lib/api";
+
+/** Leitor de recibo simples (foto) → lança SAIDA no caixa via IA de visão. */
+export async function uploadReceipt(formData: FormData) {
+  const sessionId = String(formData.get("sessionId") ?? "");
+  const file = formData.get("file");
+  if (!sessionId || !(file instanceof File) || file.size === 0) return;
+  await apiUpload(`/cash/receipt/${sessionId}`, file);
+  revalidatePath("/caixa");
+}
 
 export async function openCash(formData: FormData) {
   await apiPost("/cash/open", { openingAmount: Number(formData.get("openingAmount") ?? 0) });

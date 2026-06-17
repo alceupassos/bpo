@@ -1,5 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
+import { AiVisionService } from "../ai/ai-vision.service";
+import { StorageService, type UploadedFileLike } from "../documents/storage.service";
 
 type EntryType = "SALE" | "IN" | "OUT" | "SANGRIA" | "SUPRIMENTO";
 const INFLOW = new Set(["SALE", "IN", "SUPRIMENTO"]);
@@ -13,7 +15,11 @@ function balanceOf(session: { openingAmount: number; entries: { type: string; am
 
 @Injectable()
 export class CashService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: StorageService,
+    private readonly vision: AiVisionService
+  ) {}
 
   async current(companyId?: string | null) {
     const session = await this.prisma.cashSession.findFirst({
@@ -57,5 +63,26 @@ export class CashService {
       include: { entries: true },
       take: 30
     });
+  }
+
+  /**
+   * Leitor de recibos simples (café, gasolina, etc.): lê a foto por IA de visão
+   * e já lança uma SAÍDA no caixa. Fallback manual obrigatório — se a leitura
+   * falhar ou não houver valor, devolve needsReview para conferência humana.
+   */
+  async receipt(sessionId: string, file: UploadedFileLike) {
+    const { path } = this.storage.save(file);
+    const r = await this.vision.extract(file);
+    const amount = r.total ?? 0;
+    const description = r.supplierName ? `Recibo ${r.supplierName}` : "Recibo (conferir)";
+    const entry = await this.prisma.cashEntry.create({
+      data: { sessionId, type: "OUT", amount, description, paymentMethod: "Dinheiro" }
+    });
+    return {
+      entry,
+      extracted: r,
+      storagePath: path,
+      needsReview: r.source === "MANUAL" || amount === 0
+    };
   }
 }

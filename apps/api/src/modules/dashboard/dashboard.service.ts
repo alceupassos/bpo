@@ -75,4 +75,38 @@ export class DashboardService {
       realized: realized.map((v) => Math.round(v))
     };
   }
+
+  /**
+   * Controle de faturamento dos últimos 12 meses (janela móvel) — base para o
+   * enquadramento do Simples Nacional. Soma as receitas por mês de emissão.
+   */
+  async faturamento12m(companyId?: string | null) {
+    const entries = await this.prisma.financialEntry.findMany({
+      where: { ...(companyId ? { companyId } : {}), type: "RECEIVABLE" }
+    });
+    const labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const anchor = new Date();
+    const months: { key: string; label: string }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(anchor.getFullYear(), anchor.getMonth() - i, 1);
+      months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: labels[d.getMonth()] });
+    }
+    const values = months.map(() => 0);
+    for (const e of entries) {
+      const ref = new Date(e.issueDate);
+      const idx = months.findIndex((m) => m.key === `${ref.getFullYear()}-${ref.getMonth()}`);
+      if (idx === -1) continue;
+      values[idx] += e.amount;
+    }
+    const total12m = values.reduce((s, v) => s + v, 0);
+    // Teto do Simples Nacional = R$ 4.800.000/ano.
+    const TETO = 4_800_000;
+    return {
+      categories: months.map((m) => m.label),
+      faturamento: values.map((v) => Math.round(v)),
+      total12m: Math.round(total12m),
+      teto: TETO,
+      percentualTeto: Math.round((total12m / TETO) * 1000) / 10
+    };
+  }
 }

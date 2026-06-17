@@ -4,7 +4,7 @@ import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { getFiscalNotes } from "@/lib/api";
 import { docStatusLabel, formatBRL, formatDateBR } from "@/lib/formatters";
-import { approveNote, postNote, registerProducts, uploadNote } from "./actions";
+import { approveNote, postNote, processFullNote, registerProducts, uploadNote } from "./actions";
 
 const toneByStatus: Record<string, "neutral" | "success" | "warning" | "danger" | "info"> = {
   NEEDS_REVIEW: "warning",
@@ -83,9 +83,15 @@ export default async function NotasPage() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <form action={postNote}>
+                  <form action={processFullNote}>
                     <input type="hidden" name="id" value={note.id} />
                     <button className="rounded-xl bg-lime px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-lime-strong">
+                      Processar tudo (1 clique)
+                    </button>
+                  </form>
+                  <form action={postNote}>
+                    <input type="hidden" name="id" value={note.id} />
+                    <button className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted">
                       Lancar financeiro
                     </button>
                   </form>

@@ -67,6 +67,16 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluído
 
 ---
 
+## Cobertura Simples + pipeline NF + biometria + 10 IAs opensource (2026-06-17) ✅
+- [x] **Menu superior**: `.no-scrollbar` + fade de borda em `globals.css`; nav com itens primários + dropdown "Mais" (`dashboard-top-nav.tsx`); rail lateral rolável (`sidebar.tsx`)
+- [x] **Schema Prisma**: +`Supplier`, `Customer`, `StockMovement`, `TaxObligation`, `Employee`, `PayrollEntry`, `CorporateDoc`, `AccountingExport`; +`Product.stockQty/cost/minStock/supplierId`; +`FiscalNote.direction/customerName/posted`; migration `20260617120000_add_simples_modules` (aditiva) + seed estendido
+- [x] **Parte B (cobertura Simples)**: módulos `tax-obligations` (DAS/DEFIS), `payroll` (folha/eSocial), `corporate` (societário), `accounting` (export contador) + `GET /dashboard/faturamento-12m`
+- [x] **Parte C 1-3**: pipeline `POST /fiscal-notes/:id/process-full` (fornecedor→estoque→saída caixa→a pagar); leitor de recibo `POST /cash/receipt/:id`; biometria `customers` (identify FACE/WEBAUTHN/QR → charge crediário)
+- [x] **Parte C 4-10 (IA opensource)**: auto-matcher de conciliação (Jaro-Winkler), `ai-insights` (categorização, copiloto, forecast, anomalias, alertas, resumo mensal) com `LlmService` (Ollama default, cloud opcional, fallback determinístico)
+- [x] **Frontend**: `lib/api.ts` (novos getters/types), nav `/clientes` e `/inteligencia` + telas; recibo no caixa; "Processar tudo (1 clique)" em notas
+- [x] **Validação local**: `tsc` frontend OK · `tsc -p apps/api` OK · `next build` OK (20 rotas, inclui `/clientes` e `/inteligencia`) · `prisma generate` OK
+- [ ] **Deploy VPS** (pendente de aprovação): `prisma migrate deploy` + `prisma:seed` (⚠️ seed faz deleteMany) + build + `pm2 restart` + smoke-test em `https://bpo.angra.io`
+
 ## Overhaul UI/UX Dark Glassmorphic & 3D (2026-06-16) ✅
 - [x] `app/globals.css` — variáveis Dark Glass, customizações de `.bg-surface` e `.bg-surface-muted`
 - [x] `components/three-d-background.tsx` — canvas 3D interativo com mesh gradients e esferas de vidro flutuantes

@@ -15,7 +15,9 @@ import {
   Settings2,
   Wallet,
   Percent,
-  Briefcase
+  Briefcase,
+  UsersRound,
+  Sparkles
 } from "lucide-react";
 
 const icons = {
@@ -32,7 +34,9 @@ const icons = {
   "receipt-text": ReceiptText,
   "message-circle": MessageCircle,
   percent: Percent,
-  briefcase: Briefcase
+  briefcase: Briefcase,
+  "users-round": UsersRound,
+  sparkles: Sparkles
 };
 
 export function IconResolver({

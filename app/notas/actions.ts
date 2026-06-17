@@ -28,3 +28,12 @@ export async function approveNote(formData: FormData) {
   if (id) await apiPost(`/fiscal-notes/${id}/review`, { status: "APPROVED" });
   revalidatePath("/notas");
 }
+
+/** Pipeline 1-clique: fornecedor + estoque + saída de caixa + título a pagar. */
+export async function processFullNote(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  if (id) await apiPost(`/fiscal-notes/${id}/process-full`);
+  revalidatePath("/notas");
+  revalidatePath("/produtos");
+  revalidatePath("/caixa");
+}

@@ -44,23 +44,13 @@ export const navGroups = [
   }
 ];
 
-export function Sidebar() {
+export interface SidebarProps {
+  isCollapsed: boolean;
+  onToggle: () => void;
+}
+
+export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(true);
-
-  // Load state on client mount
-  useEffect(() => {
-    const saved = localStorage.getItem("sidebar-collapsed");
-    if (saved !== null) {
-      setIsCollapsed(saved === "true");
-    }
-  }, []);
-
-  const toggleSidebar = () => {
-    const newVal = !isCollapsed;
-    setIsCollapsed(newVal);
-    localStorage.setItem("sidebar-collapsed", String(newVal));
-  };
 
   return (
     <aside 
@@ -177,7 +167,7 @@ export function Sidebar() {
           {/* Toggle button */}
           <button
             type="button"
-            onClick={toggleSidebar}
+            onClick={onToggle}
             aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
             className="flex items-center justify-center rounded-2xl h-10 w-10 mx-auto text-text-soft hover:bg-surface-muted hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/40"
           >

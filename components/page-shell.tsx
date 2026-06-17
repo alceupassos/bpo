@@ -22,7 +22,22 @@ export function PageShell({
   topNav?: ReactNode;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const pathname = usePathname();
+
+  // Load state on client mount
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar-collapsed");
+    if (saved !== null) {
+      setIsCollapsed(saved === "true");
+    }
+  }, []);
+
+  const toggleSidebar = () => {
+    const newVal = !isCollapsed;
+    setIsCollapsed(newVal);
+    localStorage.setItem("sidebar-collapsed", String(newVal));
+  };
 
   // Close mobile menu on page navigation
   useEffect(() => {
@@ -31,13 +46,16 @@ export function PageShell({
 
   return (
     <div className="min-h-screen bg-bg panel-grid text-text selection:bg-lime/30 selection:text-lime">
-      <div className="mx-auto flex max-w-[1700px] gap-5 px-4 py-5 md:px-6 md:py-6">
+      <div className={clsx(
+        "mx-auto grid grid-cols-1 max-w-[1700px] gap-5 px-4 py-5 md:px-6 md:py-6 transition-all duration-300 ease-in-out",
+        isCollapsed ? "lg:grid-cols-[76px_1fr]" : "lg:grid-cols-[260px_1fr]"
+      )}>
         
         {/* Desktop Collapsible Left Sidebar */}
-        <Sidebar />
+        <Sidebar isCollapsed={isCollapsed} onToggle={toggleSidebar} />
 
         {/* Main Workspace */}
-        <main className="min-w-0 flex-1 flex flex-col gap-6">
+        <main className="min-w-0 flex flex-col gap-6">
           
           {/* Header containing search, profile, mobile menu trigger */}
           <DashboardTopNav onMenuClick={() => setMobileMenuOpen(true)} />

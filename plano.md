@@ -75,7 +75,7 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluído
 - [x] **Parte C 4-10 (IA opensource)**: auto-matcher de conciliação (Jaro-Winkler), `ai-insights` (categorização, copiloto, forecast, anomalias, alertas, resumo mensal) com `LlmService` (Ollama default, cloud opcional, fallback determinístico)
 - [x] **Frontend**: `lib/api.ts` (novos getters/types), nav `/clientes` e `/inteligencia` + telas; recibo no caixa; "Processar tudo (1 clique)" em notas
 - [x] **Validação local**: `tsc` frontend OK · `tsc -p apps/api` OK · `next build` OK (20 rotas, inclui `/clientes` e `/inteligencia`) · `prisma generate` OK
-- [ ] **Deploy VPS** (pendente de aprovação): `prisma migrate deploy` + `prisma:seed` (⚠️ seed faz deleteMany) + build + `pm2 restart` + smoke-test em `https://bpo.angra.io`
+- [x] **Deploy VPS** (2026-06-17): push → `git pull` → `prisma migrate deploy` (migration aplicada) → **seed aditivo** `seed-simples.ts` (idempotente, sem deleteMany — preserva dados) → `tsc`/`next build` → `pm2 restart bpo-api bpo-web`. Online em `https://bpo.angra.io` (login 201; rotas `/clientes` e `/inteligencia` 200; endpoints novos 200 com dados). Obs.: o `seed.ts` destrutivo NÃO foi usado em produção.
 
 ## Overhaul UI/UX Dark Glassmorphic & 3D (2026-06-16) ✅
 - [x] `app/globals.css` — variáveis Dark Glass, customizações de `.bg-surface` e `.bg-surface-muted`

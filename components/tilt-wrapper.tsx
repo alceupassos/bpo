@@ -64,7 +64,7 @@ export function TiltWrapper({ children, className = "", delay = 0 }: TiltWrapper
 
   const sheenBackground = useTransform(
     [springSheenX, springSheenY],
-    ([xVal, yVal]) => `radial-gradient(circle 160px at ${xVal}% ${yVal}%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 80%)`
+    ([xVal, yVal]) => `radial-gradient(circle 200px at ${xVal}% ${yVal}%, rgba(255,255,255,0.14) 0%, rgba(159,232,112,0.04) 40%, rgba(255,255,255,0) 80%)`
   );
 
   return (
@@ -96,13 +96,13 @@ export function TiltWrapper({ children, className = "", delay = 0 }: TiltWrapper
       <div 
         className="absolute inset-0 rounded-[inherit] pointer-events-none z-10 transition-all duration-300 opacity-0 group-hover:opacity-100" 
         style={{
-          border: "1px solid rgba(255, 255, 255, 0.12)",
-          boxShadow: "0 0 20px rgba(159, 232, 112, 0.05)",
+          border: "1.5px solid rgba(159, 232, 112, 0.28)",
+          boxShadow: "0 0 25px rgba(159, 232, 112, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.2)",
         }}
       />
 
-      {/* Actual inner contents projecting slightly forward */}
-      <div style={{ transform: "translateZ(10px)" }} className="h-full w-full">
+      {/* Actual inner contents projecting slightly forward with preserve-3d */}
+      <div style={{ transform: "translateZ(15px)", transformStyle: "preserve-3d" }} className="h-full w-full">
         {children}
       </div>
     </motion.div>

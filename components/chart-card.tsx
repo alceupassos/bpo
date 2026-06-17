@@ -19,8 +19,11 @@ export function ChartCard({
 }) {
   return (
     <TiltWrapper className={className}>
-      <section className="h-full rounded-[28px] border border-border bg-surface p-5 soft-glow">
-        <div className="mb-5 flex items-start justify-between gap-4">
+      <section 
+        className="h-full rounded-[28px] border border-border bg-surface p-5 soft-glow"
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        <div className="mb-5 flex items-start justify-between gap-4" style={{ transform: "translateZ(20px)" }}>
           <div className="min-w-0">
             <h3 className="text-pretty text-[1.35rem] font-semibold leading-tight text-text">{title}</h3>
             {meta ? <p className="mt-1 text-sm text-text-soft">{meta}</p> : null}
@@ -34,7 +37,9 @@ export function ChartCard({
             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
-        {children}
+        <div style={{ transform: "translateZ(10px)" }}>
+          {children}
+        </div>
       </section>
     </TiltWrapper>
   );

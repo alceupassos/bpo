@@ -70,8 +70,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               a
             </span>
             <span className={clsx(
-              "font-extrabold tracking-tight text-text transition-all duration-300 text-lg",
-              isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
+              "font-extrabold tracking-tight text-text transition-all duration-300 ease-in-out text-lg overflow-hidden whitespace-nowrap",
+              isCollapsed ? "opacity-0 max-w-0" : "opacity-100 max-w-[120px]"
             )}>
               angra
             </span>
@@ -83,8 +83,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <div key={group.title} className="flex flex-col gap-1.5">
                 {/* Group Title */}
                 <h4 className={clsx(
-                  "px-2.5 text-[9px] font-bold uppercase tracking-[0.15em] text-text-faint transition-all duration-300",
-                  isCollapsed ? "opacity-0 h-0 overflow-hidden" : "opacity-100 h-auto"
+                  "px-2.5 text-[9px] font-bold uppercase tracking-[0.15em] text-text-faint transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap",
+                  isCollapsed ? "opacity-0 max-w-0 max-h-0 py-0 opacity-0" : "opacity-100 max-w-[180px] max-h-4"
                 )}>
                   {group.title}
                 </h4>
@@ -113,8 +113,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                             aria-hidden="true" 
                           />
                           <span className={clsx(
-                            "transition-all duration-300 whitespace-nowrap overflow-hidden text-xs font-semibold",
-                            isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto ml-2.5"
+                            "transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden text-xs font-semibold",
+                            isCollapsed ? "opacity-0 max-w-0" : "opacity-100 max-w-[180px] ml-2.5"
                           )}>
                             {item.label}
                           </span>
@@ -149,8 +149,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             >
               <Settings2 className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
               <span className={clsx(
-                "transition-all duration-300 whitespace-nowrap overflow-hidden text-xs font-semibold",
-                isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto ml-2.5"
+                "transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden text-xs font-semibold",
+                isCollapsed ? "opacity-0 max-w-0" : "opacity-100 max-w-[180px] ml-2.5"
               )}>
                 Configurações
               </span>

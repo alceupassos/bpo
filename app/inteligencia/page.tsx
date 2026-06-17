@@ -56,9 +56,7 @@ export default async function InteligenciaPage({
               options={{
                 colors: ["#9fe870", "#60a5fa"],
                 stroke: { width: 3, curve: "smooth", dashArray: [0, 6] },
-                xaxis: { categories },
-                yaxis: { labels: { formatter: (v: number) => `R$ ${Math.round(v / 1000)}k` } },
-                tooltip: { y: { formatter: (v: number) => formatBRL(v) } }
+                xaxis: { categories }
               }}
             />
           </ChartCard>

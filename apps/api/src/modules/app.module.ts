@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { PrismaModule } from "../prisma/prisma.module";
 import { AccountingModule } from "./accounting/accounting.module";
 import { AiModule } from "./ai/ai.module";
@@ -29,9 +30,13 @@ import { UsersModule } from "./users/users.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: [".env", "apps/api/.env"]
+      envFilePath: [".env", "apps/api/.env"],
+      isGlobal: true
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 60
+    }]),
     PrismaModule,
     AiModule,
     AuthModule,
@@ -56,6 +61,7 @@ import { UsersModule } from "./users/users.module";
     AiInsightsModule
   ],
   providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard }
   ]

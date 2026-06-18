@@ -5,6 +5,8 @@ import { Public } from "./public.decorator";
 import { CurrentUser } from "./current-user.decorator";
 import type { DecodedJwt } from "./jwt.util";
 
+import { Throttle } from "@nestjs/throttler";
+
 class LoginDto {
   @IsEmail()
   email!: string;
@@ -19,6 +21,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post("login")
   login(@Body() body: LoginDto) {
     return this.authService.login(body.email, body.password);

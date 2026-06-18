@@ -5,7 +5,12 @@ import { ConfigService } from "@nestjs/config";
 import { AppModule } from "./modules/app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      origin: process.env.APP_ORIGIN ?? "http://127.0.0.1:3001",
+      credentials: true
+    }
+  });
   
   const config = app.get(ConfigService);
   const jwtSecret = config.get<string>("JWT_SECRET");

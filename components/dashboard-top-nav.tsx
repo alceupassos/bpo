@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Bell, LogOut, Search, Menu } from "lucide-react";
 import { logoutAction } from "@/app/login/actions";
@@ -8,7 +9,27 @@ interface DashboardTopNavProps {
   onMenuClick?: () => void;
 }
 
+const roleLabels: Record<string, string> = {
+  ADMIN_PLATAFORMA: "Admin",
+  OPERADOR_BPO: "Operador BPO",
+  GESTOR_EMPRESA: "Gestor",
+  FINANCEIRO_EMPRESA: "Financeiro"
+};
+
 export function DashboardTopNav({ onMenuClick }: DashboardTopNavProps) {
+  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          setUser({ name: data.name, role: data.role });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <header className="flex items-center justify-between gap-4 py-1.5 lg:py-2">
       {/* Mobile Hamburger & Logo OR Desktop Greet */}
@@ -52,6 +73,14 @@ export function DashboardTopNav({ onMenuClick }: DashboardTopNavProps) {
             placeholder="Buscar empresa ou documento…"
           />
         </label>
+
+        {/* User Identity info */}
+        {user && (
+          <div className="hidden md:flex flex-col items-end text-right mr-1.5 min-w-0">
+            <span className="text-xs font-bold text-text truncate max-w-[140px]">{user.name}</span>
+            <span className="text-[9px] text-text-faint uppercase tracking-wider font-bold mt-0.5">{roleLabels[user.role] ?? user.role}</span>
+          </div>
+        )}
 
         {/* Notifications Button */}
         <button

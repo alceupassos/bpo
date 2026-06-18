@@ -86,6 +86,16 @@ export function PageShell({
         </main>
       </div>
 
+      {isDemo ? (
+        <footer className="fixed bottom-0 left-0 right-0 z-40 border-t border-amber-500/20 bg-amber-500/10 px-4 py-2 text-center text-[11px] font-medium text-amber-700 backdrop-blur-md dark:text-amber-400">
+          Modo demonstracao — dados simulados ou API indisponivel
+        </footer>
+      ) : (
+        <footer className="fixed bottom-0 left-0 right-0 z-40 border-t border-lime/20 bg-lime/5 px-4 py-2 text-center text-[11px] font-medium text-text-soft backdrop-blur-md">
+          Dados reais da operacao conectados a API
+        </footer>
+      )}
+
       {/* Mobile/Tablet slide-over Drawer */}
       <AnimatePresence>
         {mobileMenuOpen && (

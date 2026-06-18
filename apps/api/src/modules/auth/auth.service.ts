@@ -11,7 +11,11 @@ export class AuthService {
   ) {}
 
   private secret(): string {
-    return this.config.get<string>("JWT_SECRET") ?? "dev-secret-change-me";
+    const secret = this.config.get<string>("JWT_SECRET");
+    if (!secret) {
+      throw new Error("JWT_SECRET is not configured");
+    }
+    return secret;
   }
 
   async login(email: string, password: string) {

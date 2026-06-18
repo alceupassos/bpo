@@ -28,7 +28,10 @@ export class JwtAuthGuard implements CanActivate {
     if (!header || !header.startsWith("Bearer ")) {
       throw new UnauthorizedException("Token ausente");
     }
-    const secret = this.config.get<string>("JWT_SECRET") ?? "dev-secret-change-me";
+    const secret = this.config.get<string>("JWT_SECRET");
+    if (!secret) {
+      throw new UnauthorizedException("JWT_SECRET nao configurado");
+    }
     const payload = verifyJwt(header.slice(7), secret);
     if (!payload) {
       throw new UnauthorizedException("Token invalido ou expirado");

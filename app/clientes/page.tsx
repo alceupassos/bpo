@@ -1,4 +1,6 @@
+import { AiInsightCard } from "@/components/ai-insight-card";
 import { DashboardTopNav } from "@/components/dashboard-top-nav";
+import { inadimplenciaInsight } from "@/lib/ai-insight-messages";
 import { ChartCard } from "@/components/chart-card";
 import { DataTable } from "@/components/data-table";
 import { PageShell } from "@/components/page-shell";
@@ -27,6 +29,13 @@ export default async function ClientesPage() {
       topNav={<DashboardTopNav />}
       isDemo={apiErrorTracker().hasError}
     >
+      <AiInsightCard
+        title="Risco de inadimplencia"
+        message={inadimplenciaInsight(customers)}
+        source="crediario + limites"
+        className="mb-6"
+      />
+
       <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
         <ChartCard title="Clientes cadastrados" meta={`${customers.length} clientes`}>
           <DataTable
@@ -43,6 +52,11 @@ export default async function ClientesPage() {
             A identificação facial usa <strong>face-api.js</strong> (open-source) e a digital usa{" "}
             <strong>WebAuthn</strong> nativo do navegador — capturados no terminal do caixa. Aqui,
             o atalho por <strong>QR</strong> demonstra o fluxo de cobrança no crediário.
+          </p>
+          <p className="mt-2 text-xs text-text-faint">
+            <strong>LGPD:</strong> o descritor facial é dado biométrico sensível (art. 11). Exige consentimento
+            explícito na captura, é criptografado em repouso e mantido apenas enquanto o crediário estiver ativo
+            (retenção máxima sugerida: 24 meses após última movimentação).
           </p>
         </ChartCard>
 

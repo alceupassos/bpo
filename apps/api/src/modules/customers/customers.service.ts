@@ -1,4 +1,5 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { decryptBiometric, encryptBiometric } from "../../common/biometric-crypto";
 import { PrismaService } from "../../prisma/prisma.service";
 
 type CustomerPayload = {
@@ -7,6 +8,7 @@ type CustomerPayload = {
   phone?: string;
   email?: string;
   faceDescriptor?: number[] | string;
+  biometricConsent?: boolean;
   webauthnCredId?: string;
   qrToken?: string;
   creditLimit?: number;
@@ -42,12 +44,20 @@ export class CustomersService {
   }
 
   create(payload: CustomerPayload, companyId?: string | null) {
-    const faceDescriptor =
-      payload.faceDescriptor === undefined
-        ? undefined
-        : Array.isArray(payload.faceDescriptor)
-          ? JSON.stringify(payload.faceDescriptor)
-          : payload.faceDescriptor;
+    let faceDescriptor: string | undefined;
+    let biometricConsentAt: Date | undefined;
+
+    if (payload.faceDescriptor !== undefined) {
+      if (!payload.biometricConsent) {
+        throw new BadRequestException("Consentimento biometrico obrigatorio para captura facial");
+      }
+      const raw = Array.isArray(payload.faceDescriptor)
+        ? JSON.stringify(payload.faceDescriptor)
+        : payload.faceDescriptor;
+      faceDescriptor = encryptBiometric(raw);
+      biometricConsentAt = new Date();
+    }
+
     return this.prisma.customer.create({
       data: {
         companyId: companyId ?? "company-1",
@@ -56,6 +66,7 @@ export class CustomersService {
         phone: payload.phone,
         email: payload.email,
         faceDescriptor,
+        biometricConsentAt,
         webauthnCredId: payload.webauthnCredId,
         qrToken: payload.qrToken,
         creditLimit: payload.creditLimit ?? 0
@@ -87,10 +98,12 @@ export class CustomersService {
       });
       let best: { customer: (typeof candidates)[number]; distance: number } | null = null;
       for (const c of candidates) {
-        if (!c.faceDescriptor) continue;
+        if (!c.faceDescriptor || !c.biometricConsentAt) continue;
+        const decrypted = decryptBiometric(c.faceDescriptor);
+        if (!decrypted) continue;
         let stored: number[];
         try {
-          stored = JSON.parse(c.faceDescriptor) as number[];
+          stored = JSON.parse(decrypted) as number[];
         } catch {
           continue;
         }

@@ -377,8 +377,10 @@ model Customer {
   document       String?
   phone          String?
   email          String?
-  // Descritor facial (vetor de 128 floats serializado em JSON) — face-api.js.
+  // Descritor facial criptografado em repouso (AES) — dado sensivel LGPD art. 11.
   faceDescriptor String?
+  // Consentimento explicito para coleta biometrica (data/hora UTC).
+  biometricConsentAt DateTime?
   // Credencial WebAuthn (id base64) para digital/biometria de plataforma.
   webauthnCredId String?
   // Token estável embutido no QR Code do cliente.

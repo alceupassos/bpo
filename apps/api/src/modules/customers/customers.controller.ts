@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import {
   IsArray,
+  IsBoolean,
   IsIn,
   IsNumber,
   IsOptional,
@@ -29,6 +30,10 @@ class CreateCustomerDto {
   @IsOptional()
   @IsArray()
   faceDescriptor?: number[];
+
+  @IsOptional()
+  @IsBoolean()
+  biometricConsent?: boolean;
 
   @IsOptional()
   @IsString()

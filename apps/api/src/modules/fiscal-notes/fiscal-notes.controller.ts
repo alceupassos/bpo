@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { IsIn, IsNumber, IsOptional, IsString } from "class-validator";
+import { ParseResourceIdPipe } from "../../common/parse-resource-id.pipe";
 import { companyScope, CurrentUser } from "../auth/current-user.decorator";
 import type { DecodedJwt } from "../auth/jwt.util";
 import type { UploadedFileLike } from "../documents/storage.service";
@@ -38,8 +39,8 @@ export class FiscalNotesController {
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.service.findOne(id);
+  findOne(@Param("id", ParseResourceIdPipe) id: string, @CurrentUser() user?: DecodedJwt) {
+    return this.service.findOne(id, companyScope(user));
   }
 
   @Post("upload")
@@ -49,22 +50,26 @@ export class FiscalNotesController {
   }
 
   @Post(":id/review")
-  review(@Param("id") id: string, @Body() body: ReviewNoteDto) {
-    return this.service.review(id, body);
+  review(
+    @Param("id", ParseResourceIdPipe) id: string,
+    @Body() body: ReviewNoteDto,
+    @CurrentUser() user?: DecodedJwt
+  ) {
+    return this.service.review(id, body, companyScope(user));
   }
 
   @Post(":id/post")
-  post(@Param("id") id: string, @CurrentUser() user?: DecodedJwt) {
+  post(@Param("id", ParseResourceIdPipe) id: string, @CurrentUser() user?: DecodedJwt) {
     return this.service.post(id, companyScope(user));
   }
 
   @Post(":id/register-products")
-  registerProducts(@Param("id") id: string, @CurrentUser() user?: DecodedJwt) {
+  registerProducts(@Param("id", ParseResourceIdPipe) id: string, @CurrentUser() user?: DecodedJwt) {
     return this.service.registerProducts(id, companyScope(user));
   }
 
   @Post(":id/process-full")
-  processFull(@Param("id") id: string, @CurrentUser() user?: DecodedJwt) {
+  processFull(@Param("id", ParseResourceIdPipe) id: string, @CurrentUser() user?: DecodedJwt) {
     return this.service.processFull(id, companyScope(user));
   }
 }

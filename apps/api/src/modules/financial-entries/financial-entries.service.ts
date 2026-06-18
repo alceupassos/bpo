@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ResourceScopeService } from "../../common/resource-scope.service";
 import { PrismaService } from "../../prisma/prisma.service";
 
 type EntryType = "PAYABLE" | "RECEIVABLE" | "EXPENSE" | "REVENUE";
@@ -13,7 +14,10 @@ type CreateFinancialEntryPayload = {
 
 @Injectable()
 export class FinancialEntriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly scope: ResourceScopeService
+  ) {}
 
   list(type?: EntryType, companyId?: string | null) {
     return this.prisma.financialEntry.findMany({
@@ -41,14 +45,16 @@ export class FinancialEntriesService {
     });
   }
 
-  markPaid(id: string) {
+  async markPaid(id: string, companyId?: string | null) {
+    await this.scope.financialEntry(id, companyId);
     return this.prisma.financialEntry.update({
       where: { id },
       data: { status: "PAID", paidDate: new Date() }
     });
   }
 
-  markReceived(id: string) {
+  async markReceived(id: string, companyId?: string | null) {
+    await this.scope.financialEntry(id, companyId);
     return this.prisma.financialEntry.update({
       where: { id },
       data: { status: "RECEIVED", paidDate: new Date() }

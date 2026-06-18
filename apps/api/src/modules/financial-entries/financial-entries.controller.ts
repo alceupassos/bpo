@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
+import { ParseResourceIdPipe } from "../../common/parse-resource-id.pipe";
 import { companyScope, CurrentUser } from "../auth/current-user.decorator";
 import type { DecodedJwt } from "../auth/jwt.util";
 import { FinancialEntriesService } from "./financial-entries.service";
@@ -39,12 +40,12 @@ export class FinancialEntriesController {
   }
 
   @Post(":id/mark-paid")
-  markPaid(@Param("id") id: string) {
-    return this.financialEntriesService.markPaid(id);
+  markPaid(@Param("id", ParseResourceIdPipe) id: string, @CurrentUser() user?: DecodedJwt) {
+    return this.financialEntriesService.markPaid(id, companyScope(user));
   }
 
   @Post(":id/mark-received")
-  markReceived(@Param("id") id: string) {
-    return this.financialEntriesService.markReceived(id);
+  markReceived(@Param("id", ParseResourceIdPipe) id: string, @CurrentUser() user?: DecodedJwt) {
+    return this.financialEntriesService.markReceived(id, companyScope(user));
   }
 }

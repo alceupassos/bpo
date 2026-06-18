@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
+import { ParseResourceIdPipe } from "../../common/parse-resource-id.pipe";
 import { companyScope, CurrentUser } from "../auth/current-user.decorator";
 import type { DecodedJwt } from "../auth/jwt.util";
 import type { UploadedFileLike } from "../documents/storage.service";
@@ -56,18 +57,33 @@ export class CashController {
   }
 
   @Post("close/:id")
-  close(@Param("id") id: string) {
-    return this.cashService.close(id);
+  close(@Param("id", ParseResourceIdPipe) id: string, @CurrentUser() user?: DecodedJwt) {
+    return this.cashService.close(id, companyScope(user));
   }
 
   @Post("entries/:id")
-  addEntry(@Param("id") id: string, @Body() body: CashEntryDto) {
-    return this.cashService.addEntry(id, body.type, body.amount, body.description, body.paymentMethod);
+  addEntry(
+    @Param("id", ParseResourceIdPipe) id: string,
+    @Body() body: CashEntryDto,
+    @CurrentUser() user?: DecodedJwt
+  ) {
+    return this.cashService.addEntry(
+      id,
+      body.type,
+      body.amount,
+      body.description,
+      body.paymentMethod,
+      companyScope(user)
+    );
   }
 
   @Post("receipt/:id")
   @UseInterceptors(FileInterceptor("file"))
-  receipt(@Param("id") id: string, @UploadedFile() file: UploadedFileLike) {
-    return this.cashService.receipt(id, file);
+  receipt(
+    @Param("id", ParseResourceIdPipe) id: string,
+    @UploadedFile() file: UploadedFileLike,
+    @CurrentUser() user?: DecodedJwt
+  ) {
+    return this.cashService.receipt(id, file, companyScope(user));
   }
 }

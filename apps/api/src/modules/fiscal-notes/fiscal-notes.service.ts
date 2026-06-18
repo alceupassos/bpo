@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ResourceScopeService } from "../../common/resource-scope.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AiVisionService } from "../ai/ai-vision.service";
 import { StorageService, type UploadedFileLike } from "../documents/storage.service";
@@ -12,7 +13,8 @@ export class FiscalNotesService {
     private readonly storage: StorageService,
     private readonly vision: AiVisionService,
     private readonly suppliers: SuppliersService,
-    private readonly products: ProductsService
+    private readonly products: ProductsService,
+    private readonly scope: ResourceScopeService
   ) {}
 
   list(companyId?: string | null) {
@@ -23,7 +25,8 @@ export class FiscalNotesService {
     });
   }
 
-  findOne(id: string) {
+  async findOne(id: string, companyId?: string | null) {
+    await this.scope.fiscalNote(id, companyId);
     return this.prisma.fiscalNote.findUnique({ where: { id }, include: { items: true } });
   }
 
@@ -55,7 +58,12 @@ export class FiscalNotesService {
     });
   }
 
-  review(id: string, data: { supplierName?: string; total?: number; status?: "APPROVED" | "REJECTED" }) {
+  async review(
+    id: string,
+    data: { supplierName?: string; total?: number; status?: "APPROVED" | "REJECTED" },
+    companyId?: string | null
+  ) {
+    await this.scope.fiscalNote(id, companyId);
     return this.prisma.fiscalNote.update({
       where: { id },
       data: {
@@ -69,8 +77,7 @@ export class FiscalNotesService {
 
   /** Gera um lançamento financeiro (a pagar) a partir da nota. */
   async post(id: string, companyId?: string | null) {
-    const note = await this.prisma.fiscalNote.findUnique({ where: { id } });
-    if (!note) return { id, posted: false };
+    const note = await this.scope.fiscalNote(id, companyId);
     const entry = await this.prisma.financialEntry.create({
       data: {
         companyId: companyId ?? note.companyId,
@@ -91,6 +98,7 @@ export class FiscalNotesService {
 
   /** Cadastra/atualiza produtos a partir dos itens da nota, dando ENTRADA no estoque. */
   async registerProducts(id: string, companyId?: string | null, supplierId?: string) {
+    await this.scope.fiscalNote(id, companyId);
     const note = await this.prisma.fiscalNote.findUnique({ where: { id }, include: { items: true } });
     if (!note) return { id, created: 0, restocked: 0 };
     const scope = companyId ?? note.companyId;
@@ -140,8 +148,7 @@ export class FiscalNotesService {
    * lança o título a pagar. Reusa os services existentes.
    */
   async processFull(id: string, companyId?: string | null) {
-    const note = await this.prisma.fiscalNote.findUnique({ where: { id } });
-    if (!note) return { id, processed: false };
+    const note = await this.scope.fiscalNote(id, companyId);
     const scope = companyId ?? note.companyId;
 
     const supplier = await this.suppliers.upsertFromNote(scope, {

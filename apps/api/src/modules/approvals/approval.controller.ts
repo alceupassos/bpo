@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Post } from "@nestjs/common";
+import { ParseResourceIdPipe } from "../../common/parse-resource-id.pipe";
 import { companyScope, CurrentUser } from "../auth/current-user.decorator";
 import type { DecodedJwt } from "../auth/jwt.util";
 import { ApprovalService } from "./approval.service";
@@ -13,12 +14,12 @@ export class ApprovalController {
   }
 
   @Post(":id/approve")
-  approve(@Param("id") id: string) {
-    return this.approvalService.approve(id);
+  approve(@Param("id", ParseResourceIdPipe) id: string, @CurrentUser() user?: DecodedJwt) {
+    return this.approvalService.approve(id, companyScope(user));
   }
 
   @Post(":id/reject")
-  reject(@Param("id") id: string) {
-    return this.approvalService.reject(id);
+  reject(@Param("id", ParseResourceIdPipe) id: string, @CurrentUser() user?: DecodedJwt) {
+    return this.approvalService.reject(id, companyScope(user));
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ResourceScopeService } from "../../common/resource-scope.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AiVisionService } from "../ai/ai-vision.service";
 import { StorageService, type UploadedFileLike } from "../documents/storage.service";
@@ -19,7 +20,8 @@ export class CashService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
-    private readonly vision: AiVisionService
+    private readonly vision: AiVisionService,
+    private readonly scope: ResourceScopeService
   ) {}
 
   async current(companyId?: string | null) {
@@ -39,7 +41,8 @@ export class CashService {
     });
   }
 
-  async close(sessionId: string) {
+  async close(sessionId: string, companyId?: string | null) {
+    await this.scope.cashSession(sessionId, companyId);
     const session = await this.prisma.cashSession.findUnique({
       where: { id: sessionId },
       include: { entries: true }
@@ -51,7 +54,15 @@ export class CashService {
     });
   }
 
-  addEntry(sessionId: string, type: EntryType, amount: number, description?: string, paymentMethod?: string) {
+  async addEntry(
+    sessionId: string,
+    type: EntryType,
+    amount: number,
+    description?: string,
+    paymentMethod?: string,
+    companyId?: string | null
+  ) {
+    await this.scope.cashSession(sessionId, companyId);
     return this.prisma.cashEntry.create({
       data: { sessionId, type, amount, description, paymentMethod }
     });
@@ -71,7 +82,8 @@ export class CashService {
    * e já lança uma SAÍDA no caixa. Fallback manual obrigatório — se a leitura
    * falhar ou não houver valor, devolve needsReview para conferência humana.
    */
-  async receipt(sessionId: string, file: UploadedFileLike) {
+  async receipt(sessionId: string, file: UploadedFileLike, companyId?: string | null) {
+    await this.scope.cashSession(sessionId, companyId);
     const { path } = this.storage.save(file);
     const r = await this.vision.extract(file);
     const amount = r.total ?? 0;

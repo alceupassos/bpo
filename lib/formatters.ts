@@ -1,10 +1,14 @@
 import type {
+  AccountingExport,
   ApprovalRequest,
   BankAccount,
   BankTransaction,
   Company,
   DocumentRecord,
-  FinancialEntry
+  Employee,
+  FinancialEntry,
+  PayrollRun,
+  TaxObligation
 } from "@/lib/api";
 import type { TableRow } from "@/lib/types";
 
@@ -139,6 +143,46 @@ export function reconciliationToRow(
     divergencia: formatBRL(tx.divergence),
     status: reconStatusLabel(tx.status),
     rawStatus: tx.status
+  };
+}
+
+export function taxObligationToRow(o: TaxObligation): TableRow {
+  return {
+    id: o.id,
+    periodo: o.competence,
+    imposto: o.type,
+    vencimento: formatDateBR(o.dueDate),
+    valor: formatBRL(o.amount),
+    status: o.status === "PAGO" ? "Pago" : o.status === "VENCIDO" ? "Vencido" : "Pendente"
+  };
+}
+
+export function payrollRunToRow(r: PayrollRun): TableRow {
+  return {
+    id: r.id,
+    funcionario: r.employee?.name ?? "Colaborador",
+    salario: formatBRL(r.baseSalary),
+    fgts: formatBRL(r.fgts),
+    status: r.status === "PAGO" ? "Pago" : r.esocialStatus === "TRANSMITIDO" ? "Transmitido" : "Pendente"
+  };
+}
+
+export function employeeToRow(e: Employee): TableRow {
+  return {
+    funcionario: e.name,
+    cargo: e.role ?? "-",
+    salario: formatBRL(e.salary),
+    status: e.status === "ATIVO" ? "Ativo" : "Inativo"
+  };
+}
+
+export function accountingExportToRow(e: AccountingExport): TableRow {
+  return {
+    mes: e.competence,
+    tipo: `${e.format} (${e.notesCount} NFs, ${e.entriesCount} lanc., ${e.payrollCount} folhas)`,
+    data: formatDateBR(e.generatedAt),
+    destinatario: "Contabilidade",
+    status: e.status === "GERADO" ? "Enviado" : e.status
   };
 }
 

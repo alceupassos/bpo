@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "crypto";
+import * as bcrypt from "bcryptjs";
 
 export interface JwtPayload {
   sub: string;
@@ -43,10 +44,13 @@ export function verifyJwt(token: string, secret: string): DecodedJwt | null {
   }
 }
 
-/** Comparação de senha em tempo constante (demo: texto plano no seed). */
-export function passwordMatches(provided: string, stored: string): boolean {
-  const a = Buffer.from(provided);
-  const b = Buffer.from(stored);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+/** Hasheia uma senha usando bcrypt. */
+export async function hashPassword(plain: string): Promise<string> {
+  return bcrypt.hash(plain, 10);
 }
+
+/** Compara a senha fornecida com o hash armazenado usando bcrypt. */
+export async function passwordMatches(provided: string, stored: string): Promise<boolean> {
+  return bcrypt.compare(provided, stored);
+}
+

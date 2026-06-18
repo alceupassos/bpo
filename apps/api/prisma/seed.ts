@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import * as bcrypt from "bcryptjs";
+
 
 const prisma = new PrismaClient();
 
@@ -29,10 +31,10 @@ const companies = [
 const companyIds = companies.map((c) => c.id);
 
 const users = [
-  { id: "user-1", name: "Alceu Passos", email: "operador@angra.local", passwordHash: "angra123", role: "OPERADOR_BPO" as const, companyId: null },
-  { id: "user-2", name: "Diretoria Angra", email: "admin@angra.local", passwordHash: "angra123", role: "ADMIN_PLATAFORMA" as const, companyId: null },
-  { id: "user-3", name: "Carla Mota", email: "gestor@praiaazul.com.br", passwordHash: "angra123", role: "GESTOR_EMPRESA" as const, companyId: "company-1" },
-  { id: "user-4", name: "Diego Luz", email: "financeiro@bompreco.com.br", passwordHash: "angra123", role: "FINANCEIRO_EMPRESA" as const, companyId: "company-2" }
+  { id: "user-1", name: "Alceu Passos", email: "operador@angra.local", passwordHash: bcrypt.hashSync("angra123", 10), role: "OPERADOR_BPO" as const, companyId: null },
+  { id: "user-2", name: "Diretoria Angra", email: "admin@angra.local", passwordHash: bcrypt.hashSync("angra123", 10), role: "ADMIN_PLATAFORMA" as const, companyId: null },
+  { id: "user-3", name: "Carla Mota", email: "gestor@praiaazul.com.br", passwordHash: bcrypt.hashSync("angra123", 10), role: "GESTOR_EMPRESA" as const, companyId: "company-1" },
+  { id: "user-4", name: "Diego Luz", email: "financeiro@bompreco.com.br", passwordHash: bcrypt.hashSync("angra123", 10), role: "FINANCEIRO_EMPRESA" as const, companyId: "company-2" }
 ];
 
 const bankAccounts = [

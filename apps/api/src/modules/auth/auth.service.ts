@@ -16,7 +16,7 @@ export class AuthService {
 
   async login(email: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
-    if (!user || !passwordMatches(password, user.passwordHash)) {
+    if (!user || !(await passwordMatches(password, user.passwordHash))) {
       throw new UnauthorizedException("Credenciais invalidas");
     }
     const payload: JwtPayload = {

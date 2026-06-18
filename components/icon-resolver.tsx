@@ -18,7 +18,8 @@ import {
   Briefcase,
   UsersRound,
   Sparkles,
-  Building2
+  Building2,
+  ShieldCheck
 } from "lucide-react";
 
 const icons = {
@@ -38,7 +39,8 @@ const icons = {
   percent: Percent,
   briefcase: Briefcase,
   "users-round": UsersRound,
-  sparkles: Sparkles
+  sparkles: Sparkles,
+  "shield-check": ShieldCheck
 };
 
 export function IconResolver({

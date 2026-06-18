@@ -23,6 +23,7 @@ export const navGroups = [
     items: [
       { href: "/contas-a-pagar", label: "A Pagar", icon: "wallet" },
       { href: "/contas-a-receber", label: "A Receber", icon: "badge-dollar-sign" },
+      { href: "/aprovacoes", label: "Aprovações", icon: "shield-check" },
       { href: "/caixa", label: "Caixa", icon: "calculator" },
       { href: "/conciliacao", label: "Conciliação", icon: "scale" },
     ]

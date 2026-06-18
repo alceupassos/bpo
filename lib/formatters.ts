@@ -140,6 +140,18 @@ export function reconciliationToRow(
   };
 }
 
+/** Fila operacional de aprovações (visão do BPO). */
+export function approvalToRow(a: ApprovalRequest): TableRow {
+  return {
+    id: a.id,
+    descricao: a.description,
+    valor: formatBRL(a.amount),
+    solicitante: a.requestedBy,
+    data: formatDateBR(a.createdAt),
+    status: approvalStatusLabel(a.status)
+  };
+}
+
 /** Pendências do cliente a partir das aprovações em aberto. */
 export function approvalToClientRow(a: ApprovalRequest): TableRow {
   return {

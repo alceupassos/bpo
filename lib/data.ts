@@ -138,6 +138,15 @@ export const alertRows: TableRow[] = [
   { tipo: "Conciliacao pendente", mensagem: "42 transacoes nao conciliadas", qtd: "42", acao: "Ver" }
 ];
 
+export const approvalRows: TableRow[] = [
+  { descricao: "Frete logistica - NF 8821", valor: "R$ 12.800", solicitante: "Operador BPO", data: "17/06/2026", status: "Pendente" },
+  { descricao: "Marketing digital - campanha junho", valor: "R$ 8.450", solicitante: "Operador BPO", data: "16/06/2026", status: "Pendente" },
+  { descricao: "Manutencao equipamentos", valor: "R$ 6.200", solicitante: "Operador BPO", data: "15/06/2026", status: "Pendente" },
+  { descricao: "Assessoria juridica trimestral", valor: "R$ 5.970", solicitante: "Operador BPO", data: "14/06/2026", status: "Pendente" },
+  { descricao: "Energia eletrica - unidade 2", valor: "R$ 3.100", solicitante: "Operador BPO", data: "13/06/2026", status: "Pendente" },
+  { descricao: "Software contabil - licenca", valor: "R$ 1.900", solicitante: "Operador BPO", data: "12/06/2026", status: "Pendente" }
+];
+
 export const activityRows: TableRow[] = [
   { data: "24/05/2024 08:31", descricao: "Pagamento fornecedor - NF 2387", valor: "-R$ 2.450,00", origem: "Contabilidade" },
   { data: "24/05/2024 08:22", descricao: "Recebimento cliente - NF 4587", valor: "R$ 6.890,00", origem: "Importacao Bancaria" },
@@ -163,6 +172,15 @@ export const pageSummaries = {
       { label: "Total a receber", value: "R$ 141.870" },
       { label: "Em atraso", value: "R$ 22.630" },
       { label: "PMR", value: "34 dias" }
+    ]
+  },
+  "/aprovacoes": {
+    title: "Aprovacoes",
+    subtitle: "Workflow de aprovacao de pagamentos — operador solicita, cliente decide.",
+    metrics: [
+      { label: "Pendentes", value: "6 titulos" },
+      { label: "Valor total", value: "R$ 38.420" },
+      { label: "Maior titulo", value: "R$ 12.800" }
     ]
   },
   "/conciliacao": {

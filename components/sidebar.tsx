@@ -34,6 +34,7 @@ export const navGroups = [
     title: "Operações",
     items: [
       { href: "/notas", label: "Notas (OCR)", icon: "receipt-text" },
+      { href: "/fornecedores", label: "Fornecedores", icon: "briefcase" },
       { href: "/produtos", label: "Produtos", icon: "package" },
       { href: "/clientes", label: "Clientes", icon: "users-round" },
       { href: "/whatsapp", label: "WhatsApp", icon: "message-circle" },

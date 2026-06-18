@@ -15,6 +15,7 @@ export const navGroups = [
       { href: "/inteligencia", label: "IA Financeira", icon: "sparkles" },
       { href: "/relatorios", label: "Relatórios", icon: "chart-column-big" },
       { href: "/painel-cliente", label: "Painel Cliente", icon: "monitor-dot" },
+      { href: "/empresas", label: "Empresas", icon: "building-2" },
     ]
   },
   {

@@ -17,10 +17,12 @@ import {
   Percent,
   Briefcase,
   UsersRound,
-  Sparkles
+  Sparkles,
+  Building2
 } from "lucide-react";
 
 const icons = {
+  "building-2": Building2,
   "layout-dashboard": LayoutDashboard,
   wallet: Wallet,
   "badge-dollar-sign": BadgeDollarSign,

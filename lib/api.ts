@@ -228,6 +228,7 @@ export const getBankTransactions = () => apiGet<BankTransaction[]>("/bank-transa
 export const getBankAccounts = () => apiGet<BankAccount[]>("/bank-accounts");
 export const getApprovals = () => apiGet<ApprovalRequest[]>("/approvals");
 export const getCompanies = () => apiGet<Company[]>("/companies");
+export const createCompany = (body: unknown) => apiPost<any>("/companies", body);
 export const getCurrentUser = () => apiGet<SessionUser>("/auth/me");
 export const getProducts = () => apiGet<Product[]>("/products");
 export const getFiscalNotes = () => apiGet<FiscalNote[]>("/fiscal-notes");

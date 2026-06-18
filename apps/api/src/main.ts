@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./modules/app.module";
 
 async function bootstrap() {
@@ -22,6 +23,16 @@ async function bootstrap() {
 
 
   app.setGlobalPrefix("api");
+
+  const swagger = new DocumentBuilder()
+    .setTitle("Angra BPO API")
+    .setDescription("API do BPO Financeiro Angra — autenticacao, financeiro, fiscal e operacoes.")
+    .setVersion("0.1.0")
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swagger);
+  SwaggerModule.setup("api/docs", app, document);
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -33,6 +44,7 @@ async function bootstrap() {
   const port = Number(process.env.PORT ?? 3002);
   await app.listen(port, "127.0.0.1");
   console.log(`API pronta em http://127.0.0.1:${port}/api`);
+  console.log(`Swagger em http://127.0.0.1:${port}/api/docs`);
 }
 
 bootstrap();

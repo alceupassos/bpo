@@ -21,19 +21,19 @@ export class DashboardService {
     const payables = entries.filter((e) => e.type === "PAYABLE");
     const receivables = entries.filter((e) => e.type === "RECEIVABLE");
 
-    const aPagar = payables.filter((e) => OPEN_PAYABLE.has(e.status)).reduce((s, e) => s + e.amount, 0);
+    const aPagar = payables.filter((e) => OPEN_PAYABLE.has(e.status)).reduce((s, e) => s + Number(e.amount), 0);
     const aReceber = receivables
       .filter((e) => e.status === "APPROVED" || e.status === "PENDING_APPROVAL")
-      .reduce((s, e) => s + e.amount, 0);
+      .reduce((s, e) => s + Number(e.amount), 0);
     const inadimplencia = receivables
       .filter((e) => {
         if (e.status === "RECEIVED" || e.status === "CANCELLED") return false;
         const due = new Date(e.dueDate).getTime();
-        return now - due > 90 * 86400000 || (now > due && e.amount > 8000);
+        return now - due > 90 * 86400000 || (now > due && Number(e.amount) > 8000);
       })
-      .reduce((s, e) => s + e.amount, 0);
-    const recebido = receivables.filter((e) => e.status === "RECEIVED").reduce((s, e) => s + e.amount, 0);
-    const pago = payables.filter((e) => e.status === "PAID").reduce((s, e) => s + e.amount, 0);
+      .reduce((s, e) => s + Number(e.amount), 0);
+    const recebido = receivables.filter((e) => e.status === "RECEIVED").reduce((s, e) => s + Number(e.amount), 0);
+    const pago = payables.filter((e) => e.status === "PAID").reduce((s, e) => s + Number(e.amount), 0);
 
     return {
       saldoProjetado: Math.round(aReceber - aPagar + recebido),
@@ -65,7 +65,7 @@ export class DashboardService {
       const due = new Date(e.dueDate);
       const idx = months.findIndex((m) => m.key === `${due.getFullYear()}-${due.getMonth()}`);
       if (idx === -1) continue;
-      const signed = e.type === "RECEIVABLE" ? e.amount : -e.amount;
+      const signed = e.type === "RECEIVABLE" ? Number(e.amount) : -Number(e.amount);
       projected[idx] += signed;
       if (e.status === "PAID" || e.status === "RECEIVED") realized[idx] += signed;
     }
@@ -96,7 +96,7 @@ export class DashboardService {
       const ref = new Date(e.issueDate);
       const idx = months.findIndex((m) => m.key === `${ref.getFullYear()}-${ref.getMonth()}`);
       if (idx === -1) continue;
-      values[idx] += e.amount;
+      values[idx] += Number(e.amount);
     }
     const total12m = values.reduce((s, v) => s + v, 0);
     // Teto do Simples Nacional = R$ 4.800.000/ano.

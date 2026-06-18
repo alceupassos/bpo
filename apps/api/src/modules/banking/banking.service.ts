@@ -91,13 +91,13 @@ export class BankingService {
   }
 
   private bestEntryFor(
-    tx: { amount: number; date: Date; description: string },
-    entries: { id: string; amount: number; dueDate: Date; counterpartyName: string }[]
+    tx: { amount: any; date: Date; description: string },
+    entries: { id: string; amount: any; dueDate: Date; counterpartyName: string }[]
   ): { entryId: string; score: number } | null {
     let best: { entryId: string; score: number } | null = null;
-    const txAmount = Math.abs(tx.amount);
+    const txAmount = Math.abs(Number(tx.amount));
     for (const e of entries) {
-      const amountDiff = Math.abs(Math.abs(e.amount) - txAmount);
+      const amountDiff = Math.abs(Math.abs(Number(e.amount)) - txAmount);
       const amountScore = amountDiff < 0.01 ? 1 : Math.max(0, 1 - amountDiff / Math.max(txAmount, 1));
       const days = Math.abs(new Date(tx.date).getTime() - new Date(e.dueDate).getTime()) / 86400000;
       const dateScore = Math.max(0, 1 - days / 15);

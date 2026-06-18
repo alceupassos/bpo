@@ -67,15 +67,15 @@ export class AiInsightsService {
     const now = Date.now();
     const open = (t: string, statuses: string[]) =>
       entries.filter((e) => e.type === t && statuses.includes(e.status));
-    const aPagar = open("PAYABLE", ["DRAFT", "PENDING_APPROVAL", "APPROVED"]).reduce((s, e) => s + e.amount, 0);
-    const aReceber = open("RECEIVABLE", ["APPROVED", "PENDING_APPROVAL"]).reduce((s, e) => s + e.amount, 0);
+    const aPagar = open("PAYABLE", ["DRAFT", "PENDING_APPROVAL", "APPROVED"]).reduce((s, e) => s + Number(e.amount), 0);
+    const aReceber = open("RECEIVABLE", ["APPROVED", "PENDING_APPROVAL"]).reduce((s, e) => s + Number(e.amount), 0);
     const venceSemana = entries
       .filter((e) => e.type === "PAYABLE" && e.status !== "PAID" && e.status !== "CANCELLED")
       .filter((e) => {
         const due = new Date(e.dueDate).getTime();
         return due >= now && due <= now + 7 * 86400000;
       })
-      .reduce((s, e) => s + e.amount, 0);
+      .reduce((s, e) => s + Number(e.amount), 0);
 
     const context = `Contexto financeiro (R$): a pagar em aberto=${Math.round(aPagar)}, a receber em aberto=${Math.round(aReceber)}, contas que vencem nos proximos 7 dias=${Math.round(venceSemana)}.`;
     const answer = await this.llm.complete(
@@ -107,7 +107,7 @@ export class AiInsightsService {
       const due = new Date(e.dueDate);
       const idx = months.findIndex((m) => m.key === `${due.getFullYear()}-${due.getMonth()}`);
       if (idx === -1) continue;
-      net[idx] += e.type === "RECEIVABLE" ? e.amount : -e.amount;
+      net[idx] += e.type === "RECEIVABLE" ? Number(e.amount) : -Number(e.amount);
     }
     const forecast = linearForecast(net, 3);
     const futureLabels: string[] = [];
@@ -151,16 +151,17 @@ export class AiInsightsService {
 
     // Outliers de pagamento (z-score > 2).
     if (payables.length >= 4) {
-      const amounts = payables.map((p) => p.amount);
+      const amounts = payables.map((p) => Number(p.amount));
       const mean = amounts.reduce((s, a) => s + a, 0) / amounts.length;
       const std = Math.sqrt(amounts.reduce((s, a) => s + (a - mean) ** 2, 0) / amounts.length) || 1;
       for (const p of payables) {
-        const z = (p.amount - mean) / std;
+        const val = Number(p.amount);
+        const z = (val - mean) / std;
         if (z > 2) {
           findings.push({
             type: "VALOR_FORA_DO_PADRAO",
             severity: z > 3 ? "alta" : "media",
-            description: `Pagamento atipico: ${p.counterpartyName} R$ ${Math.round(p.amount)} (z=${z.toFixed(1)}).`
+            description: `Pagamento atipico: ${p.counterpartyName} R$ ${Math.round(val)} (z=${z.toFixed(1)}).`
           });
         }
       }
@@ -189,7 +190,7 @@ export class AiInsightsService {
         kind: o.type,
         title: `${o.type} ${o.competence}${d < 0 ? " (em atraso)" : ""}`,
         dueDate: o.dueDate,
-        amount: o.amount,
+        amount: Number(o.amount),
         risk
       });
     }
@@ -201,7 +202,7 @@ export class AiInsightsService {
             kind: "A_PAGAR",
             title: `Pagar ${e.counterpartyName}${d < 0 ? " (vencido)" : ""}`,
             dueDate: e.dueDate,
-            amount: e.amount,
+            amount: Number(e.amount),
             risk: d < 0 ? 90 : 60 - d * 5
           });
         }
@@ -222,10 +223,10 @@ export class AiInsightsService {
 
     const entrou = entries
       .filter((e) => e.type === "RECEIVABLE" && e.status === "RECEIVED" && e.paidDate && inMonth(e.paidDate))
-      .reduce((s, e) => s + e.amount, 0);
+      .reduce((s, e) => s + Number(e.amount), 0);
     const saiu = entries
       .filter((e) => e.type === "PAYABLE" && e.status === "PAID" && e.paidDate && inMonth(e.paidDate))
-      .reduce((s, e) => s + e.amount, 0);
+      .reduce((s, e) => s + Number(e.amount), 0);
     const sobra = entrou - saiu;
 
     const data = { entrou: Math.round(entrou), saiu: Math.round(saiu), sobra: Math.round(sobra) };

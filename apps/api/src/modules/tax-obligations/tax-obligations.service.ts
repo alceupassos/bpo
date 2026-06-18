@@ -53,11 +53,11 @@ export class TaxObligationsService {
       .filter((o) => o.type === "DAS" && o.status !== "PAGO")
       .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0];
     return {
-      dasMes: dasMes ? Math.round(dasMes.amount) : 0,
+      dasMes: dasMes ? Math.round(Number(dasMes.amount)) : 0,
       dasVencimento: dasMes?.dueDate ?? null,
       pendentes: pendentes.length,
       atrasadas: atrasadas.length,
-      totalPendente: Math.round(pendentes.reduce((s, o) => s + o.amount, 0))
+      totalPendente: Math.round(pendentes.reduce((s, o) => s + Number(o.amount), 0))
     };
   }
 }

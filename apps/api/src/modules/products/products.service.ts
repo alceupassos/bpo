@@ -28,7 +28,7 @@ export class ProductsService {
     const products = await this.prisma.product.findMany({
       where: companyId ? { companyId } : {}
     });
-    return products.filter((p) => p.stockQty <= p.minStock);
+    return products.filter((p) => Number(p.stockQty) <= Number(p.minStock));
   }
 
   findOne(id: string) {
@@ -80,7 +80,7 @@ export class ProductsService {
     if (!product) return { ok: false, reason: "produto nao encontrado" };
 
     const delta = type === "OUT" ? -Math.abs(qty) : type === "IN" ? Math.abs(qty) : qty;
-    const nextQty = type === "ADJUST" ? qty : product.stockQty + delta;
+    const nextQty = type === "ADJUST" ? qty : Number(product.stockQty) + delta;
 
     await this.prisma.stockMovement.create({
       data: {

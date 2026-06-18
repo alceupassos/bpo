@@ -57,8 +57,8 @@ export class PayrollService {
         where: { employeeId: emp.id, competence }
       });
       if (exists) continue;
-      const fgts = Math.round(emp.salary * FGTS_RATE * 100) / 100;
-      const inss = Math.round(emp.salary * INSS_RATE * 100) / 100;
+      const fgts = Math.round(Number(emp.salary) * FGTS_RATE * 100) / 100;
+      const inss = Math.round(Number(emp.salary) * INSS_RATE * 100) / 100;
       await this.prisma.payrollEntry.create({
         data: {
           companyId: emp.companyId,
@@ -67,8 +67,8 @@ export class PayrollService {
           baseSalary: emp.salary,
           fgts,
           inss,
-          netPay: Math.round((emp.salary - inss) * 100) / 100,
-          vacationDue: Math.round((emp.salary / 12) * 100) / 100
+          netPay: Math.round((Number(emp.salary) - inss) * 100) / 100,
+          vacationDue: Math.round((Number(emp.salary) / 12) * 100) / 100
         }
       });
       created += 1;
@@ -89,8 +89,8 @@ export class PayrollService {
       this.prisma.employee.count({ where: { ...where, status: "ATIVO" } }),
       this.prisma.payrollEntry.findMany({ where })
     ]);
-    const custoFolha = runs.reduce((s, r) => s + r.baseSalary + r.fgts, 0);
-    const fgtsTotal = runs.reduce((s, r) => s + r.fgts, 0);
+    const custoFolha = runs.reduce((s, r) => s + Number(r.baseSalary) + Number(r.fgts), 0);
+    const fgtsTotal = runs.reduce((s, r) => s + Number(r.fgts), 0);
     return {
       funcionariosAtivos: ativos,
       custoFolha: Math.round(custoFolha),

@@ -148,7 +148,7 @@ export class CustomersService {
 
     const updated = await this.prisma.customer.update({
       where: { id: customerId },
-      data: { balance: customer.balance + data.amount }
+      data: { balance: Number(customer.balance) + data.amount }
     });
 
     return { charged: true, entryId: entry.id, balance: updated.balance, customer: updated };

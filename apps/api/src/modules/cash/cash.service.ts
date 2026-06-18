@@ -6,10 +6,11 @@ import { StorageService, type UploadedFileLike } from "../documents/storage.serv
 type EntryType = "SALE" | "IN" | "OUT" | "SANGRIA" | "SUPRIMENTO";
 const INFLOW = new Set(["SALE", "IN", "SUPRIMENTO"]);
 
-function balanceOf(session: { openingAmount: number; entries: { type: string; amount: number }[] }): number {
+function balanceOf(session: { openingAmount: any; entries: { type: string; amount: any }[] }): number {
+  const opening = Number(session.openingAmount);
   return session.entries.reduce(
-    (acc, e) => acc + (INFLOW.has(e.type) ? e.amount : -e.amount),
-    session.openingAmount
+    (acc, e) => acc + (INFLOW.has(e.type) ? Number(e.amount) : -Number(e.amount)),
+    opening
   );
 }
 

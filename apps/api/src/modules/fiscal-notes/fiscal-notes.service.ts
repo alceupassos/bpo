@@ -124,7 +124,7 @@ export class FiscalNotesService {
         created += 1;
       }
       // Entrada de estoque pela quantidade da nota.
-      await this.products.move(productId, "IN", item.qty || 0, {
+      await this.products.move(productId, "IN", Number(item.qty) || 0, {
         reason: "Entrada por NF",
         refType: "FISCAL_NOTE",
         refId: note.id
@@ -158,7 +158,7 @@ export class FiscalNotesService {
       orderBy: { openedAt: "desc" }
     });
     let cashEntryId: string | null = null;
-    if (session && note.total > 0) {
+    if (session && Number(note.total) > 0) {
       const cashEntry = await this.prisma.cashEntry.create({
         data: {
           sessionId: session.id,

@@ -16,6 +16,16 @@ class LoginDto {
   password!: string;
 }
 
+class ChangePasswordDto {
+  @IsString()
+  @MinLength(6)
+  currentPassword!: string;
+
+  @IsString()
+  @MinLength(6)
+  newPassword!: string;
+}
+
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -40,5 +50,11 @@ export class AuthController {
       throw new UnauthorizedException("Token ausente");
     }
     return this.authService.refresh(authorization.slice(7));
+  }
+
+  @Post("change-password")
+  changePassword(@CurrentUser() user: DecodedJwt | undefined, @Body() body: ChangePasswordDto) {
+    if (!user) throw new UnauthorizedException();
+    return this.authService.changePassword(user.sub, body.currentPassword, body.newPassword);
   }
 }

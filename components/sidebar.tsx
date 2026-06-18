@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, Settings2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Settings2, UserRound } from "lucide-react";
 import clsx from "clsx";
 import { IconResolver } from "@/components/icon-resolver";
 
@@ -140,6 +140,31 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
         {/* Footer actions: Settings and Toggle */}
         <div className="flex flex-col gap-2.5 border-t border-white/5 pt-3">
+          <div className="relative group/profile">
+            <Link
+              href={"/perfil" as never}
+              aria-label="Meu perfil"
+              className={clsx(
+                "flex items-center rounded-2xl h-10 text-text-soft transition-colors hover:bg-surface-muted hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/40",
+                isCollapsed ? "justify-center w-10 px-0 mx-auto" : "px-3 w-full",
+                pathname === "/perfil" ? "bg-surface-muted text-text" : ""
+              )}
+            >
+              <UserRound className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+              <span className={clsx(
+                "transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden text-xs font-semibold",
+                isCollapsed ? "opacity-0 max-w-0" : "opacity-100 max-w-[180px] ml-2.5"
+              )}>
+                Meu perfil
+              </span>
+            </Link>
+            {isCollapsed && (
+              <div className="absolute left-full ml-3.5 top-1/2 -translate-y-1/2 opacity-0 pointer-events-none group-hover/profile:opacity-100 transition-opacity bg-slate-950/95 border border-white/10 rounded-xl px-2.5 py-1.5 text-[10px] font-semibold tracking-wide text-text whitespace-nowrap z-50 shadow-2xl backdrop-blur-md">
+                Meu perfil
+              </div>
+            )}
+          </div>
+
           <div className="relative group/settings">
             <Link
               href={"/configuracoes" as never}

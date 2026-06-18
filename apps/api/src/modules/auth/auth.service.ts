@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
+  hashPassword,
   passwordMatches,
   signJwt,
   verifyJwtForRefresh,
@@ -50,6 +51,16 @@ export class AuthService {
       role: decoded.role,
       companyId: decoded.companyId
     };
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !(await passwordMatches(currentPassword, user.passwordHash))) {
+      throw new UnauthorizedException("Senha atual incorreta");
+    }
+    const passwordHash = await hashPassword(newPassword);
+    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+    return { changed: true };
   }
 
   /** Renova o JWT a partir de um token válido ou expirado recentemente. */

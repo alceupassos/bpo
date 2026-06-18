@@ -4,7 +4,7 @@ import { ReactNode, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Sidebar, navGroups } from "@/components/sidebar";
 import { DashboardTopNav } from "@/components/dashboard-top-nav";
-import { Menu, X, Settings2 } from "lucide-react";
+import { Menu, X, Settings2, UserRound } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import clsx from "clsx";
@@ -162,6 +162,16 @@ export function PageShell({
 
               {/* Bottom adjustments and Close */}
               <div className="flex flex-col gap-2 border-t border-white/5 pt-3">
+                <Link
+                  href={"/perfil" as never}
+                  className={clsx(
+                    "flex items-center rounded-2xl h-10 px-3 w-full text-text-soft transition-colors hover:bg-surface-muted hover:text-text",
+                    pathname === "/perfil" ? "bg-surface-muted text-text" : ""
+                  )}
+                >
+                  <UserRound className="h-[18px] w-[18px] shrink-0 mr-2.5" />
+                  <span className="text-xs font-semibold">Meu perfil</span>
+                </Link>
                 <Link
                   href={"/configuracoes" as never}
                   className={clsx(

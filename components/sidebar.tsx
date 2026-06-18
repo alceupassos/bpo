@@ -44,6 +44,7 @@ export const navGroups = [
     title: "Contabilidade",
     items: [
       { href: "/contador", label: "Contador", icon: "briefcase" },
+      { href: "/societario", label: "Societário", icon: "scroll-text" },
       { href: "/fiscal-trabalhista", label: "Fiscal / Trab", icon: "percent" },
     ]
   }

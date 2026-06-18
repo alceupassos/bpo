@@ -1,15 +1,21 @@
+import { AiInsightCard } from "@/components/ai-insight-card";
 import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { ModuleOverview } from "@/components/module-overview";
 import { PageShell } from "@/components/page-shell";
 import { ReconciliationTable } from "@/components/reconciliation-table";
-import { apiErrorTracker, getBankAccounts, getBankTransactions } from "@/lib/api";
+import { anomaliesInsight } from "@/lib/ai-insight-messages";
+import { apiErrorTracker, getAnomalies, getBankAccounts, getBankTransactions } from "@/lib/api";
 import { pageSummaries, reconciliationRows } from "@/lib/data";
 import { autoReconcile, suggestMatches } from "./actions";
 
 const summary = pageSummaries["/conciliacao"];
 
 export default async function ConciliacaoPage() {
-  const [txs, accounts] = await Promise.all([getBankTransactions(), getBankAccounts()]);
+  const [txs, accounts, anomalies] = await Promise.all([
+    getBankTransactions(),
+    getBankAccounts(),
+    getAnomalies()
+  ]);
   const isDemo = apiErrorTracker().hasError || !txs;
 
   const metrics = txs
@@ -26,6 +32,11 @@ export default async function ConciliacaoPage() {
   return (
     <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={isDemo}>
       <div className="space-y-6">
+        <AiInsightCard
+          title="Anomalia detectada"
+          message={anomaliesInsight(anomalies)}
+          source="deteccao estatistica"
+        />
         {txs && (
           <div className="flex flex-wrap gap-3">
             <form action={suggestMatches}>

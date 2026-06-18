@@ -1,7 +1,9 @@
+import { AiInsightCard } from "@/components/ai-insight-card";
 import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { ModuleOverview } from "@/components/module-overview";
 import { PageShell } from "@/components/page-shell";
-import { getFinancialEntries } from "@/lib/api";
+import { alertsInsight } from "@/lib/ai-insight-messages";
+import { getAlerts, getFinancialEntries } from "@/lib/api";
 import { pageSummaries, payablesRows } from "@/lib/data";
 import { formatBRL, payableToRow, statusDonut } from "@/lib/formatters";
 
@@ -9,7 +11,7 @@ const summary = pageSummaries["/contas-a-pagar"];
 const OPEN = new Set(["DRAFT", "PENDING_APPROVAL", "APPROVED"]);
 
 export default async function ContasAPagarPage() {
-  const entries = await getFinancialEntries("PAYABLE");
+  const [entries, alerts] = await Promise.all([getFinancialEntries("PAYABLE"), getAlerts()]);
   const rows = entries ? entries.map(payableToRow) : payablesRows;
   const donut = entries ? statusDonut(entries) : null;
 
@@ -32,6 +34,12 @@ export default async function ContasAPagarPage() {
 
   return (
     <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={!entries}>
+      <AiInsightCard
+        title="Alerta de vencimentos"
+        message={alertsInsight(alerts)}
+        source="regras + calendario fiscal"
+        className="mb-6"
+      />
       <ModuleOverview
         metrics={metrics}
         tableTitle="Agenda operacional de pagamentos"

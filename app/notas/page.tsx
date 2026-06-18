@@ -1,4 +1,7 @@
+import { AiInsightCard } from "@/components/ai-insight-card";
 import { DashboardTopNav } from "@/components/dashboard-top-nav";
+import { anomaliesInsight } from "@/lib/ai-insight-messages";
+import { getAnomalies } from "@/lib/api";
 import { ChartCard } from "@/components/chart-card";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
@@ -14,7 +17,8 @@ const toneByStatus: Record<string, "neutral" | "success" | "warning" | "danger" 
 };
 
 export default async function NotasPage() {
-  const notes = (await getFiscalNotes()) ?? [];
+  const [notes, anomalies] = await Promise.all([getFiscalNotes(), getAnomalies()]);
+  const list = notes ?? [];
 
   return (
     <PageShell
@@ -24,6 +28,12 @@ export default async function NotasPage() {
       isDemo={apiErrorTracker().hasError}
     >
       <div className="space-y-6">
+        <AiInsightCard
+          title="Nota duplicada ou atipica"
+          message={anomaliesInsight(anomalies)}
+          source="deteccao de padroes"
+        />
+
         <ChartCard title="Enviar nota" meta="A IA extrai fornecedor, valor e itens (cai em revisao manual se a IA nao estiver disponivel)">
           <form action={uploadNote} className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <input
@@ -42,7 +52,7 @@ export default async function NotasPage() {
           </form>
         </ChartCard>
 
-        {notes.length === 0 ? (
+        {list.length === 0 ? (
           <ChartCard title="Fila de notas" meta="Nenhuma nota ainda">
             <div className="rounded-[22px] border border-dashed border-border bg-surface-muted px-6 py-10 text-center text-sm text-text-soft">
               Envie a primeira nota acima.
@@ -50,7 +60,7 @@ export default async function NotasPage() {
           </ChartCard>
         ) : (
           <div className="grid gap-5 lg:grid-cols-2">
-            {notes.map((note) => (
+            {list.map((note) => (
               <section key={note.id} className="rounded-[28px] border border-border bg-surface p-5 soft-glow">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">

@@ -1,7 +1,9 @@
+import { AiInsightCard } from "@/components/ai-insight-card";
 import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { ModuleOverview } from "@/components/module-overview";
 import { PageShell } from "@/components/page-shell";
-import { getFinancialEntries } from "@/lib/api";
+import { inadimplenciaInsight } from "@/lib/ai-insight-messages";
+import { getCustomers, getFinancialEntries } from "@/lib/api";
 import { pageSummaries, receivablesRows } from "@/lib/data";
 import { formatBRL, receivableToRow, statusDonut } from "@/lib/formatters";
 
@@ -13,7 +15,7 @@ function isOverdue(dueDate: string): boolean {
 }
 
 export default async function ContasAReceberPage() {
-  const entries = await getFinancialEntries("RECEIVABLE");
+  const [entries, customers] = await Promise.all([getFinancialEntries("RECEIVABLE"), getCustomers()]);
   const rows = entries ? entries.map(receivableToRow) : receivablesRows;
   const donut = entries ? statusDonut(entries) : null;
 
@@ -40,6 +42,12 @@ export default async function ContasAReceberPage() {
 
   return (
     <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={!entries}>
+      <AiInsightCard
+        title="Risco de inadimplencia"
+        message={inadimplenciaInsight(customers)}
+        source="crediario + limites"
+        className="mb-6"
+      />
       <ModuleOverview
         metrics={metrics}
         tableTitle="Carteira de recebiveis"

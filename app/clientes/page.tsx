@@ -2,7 +2,7 @@ import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { ChartCard } from "@/components/chart-card";
 import { DataTable } from "@/components/data-table";
 import { PageShell } from "@/components/page-shell";
-import { getCustomers } from "@/lib/api";
+import { getCustomers, apiErrorTracker } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
 import { chargeByQr, createCustomer } from "./actions";
 
@@ -25,6 +25,7 @@ export default async function ClientesPage() {
       title="Clientes"
       subtitle="Crediário e identificação no caixa por reconhecimento facial, digital (WebAuthn) ou QR Code — para quem já é cadastrado."
       topNav={<DashboardTopNav />}
+      isDemo={apiErrorTracker().hasError}
     >
       <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
         <ChartCard title="Clientes cadastrados" meta={`${customers.length} clientes`}>

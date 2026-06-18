@@ -39,7 +39,7 @@ export default async function PainelClientePage() {
       : undefined;
 
   return (
-    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />}>
+    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={!payables || !receivables || !approvals}>
       <ClientPanelScreen metrics={metrics} pending={pending} history={history} />
     </PageShell>
   );

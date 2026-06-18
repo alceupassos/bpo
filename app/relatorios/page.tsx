@@ -44,7 +44,7 @@ export default async function RelatoriosPage() {
   const chartCategories = cashflow ? cashflow.categories : ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"];
 
   return (
-    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />}>
+    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={!payables || !receivables || !cashflow}>
       <div className="space-y-6">
         <ModuleOverview
           metrics={metrics}

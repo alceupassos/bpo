@@ -20,7 +20,7 @@ export default async function ConfiguracoesPage() {
     : summary.metrics;
 
   return (
-    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />}>
+    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={!companies || !accounts}>
       <ModuleOverview
         metrics={metrics}
         tableTitle="Base operacional"

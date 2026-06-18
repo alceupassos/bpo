@@ -2,7 +2,7 @@ import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { ChartCard } from "@/components/chart-card";
 import { DataTable } from "@/components/data-table";
 import { PageShell } from "@/components/page-shell";
-import { getCashCurrent } from "@/lib/api";
+import { getCashCurrent, apiErrorTracker } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
 import { addCashEntry, closeCash, openCash, uploadReceipt } from "./actions";
 
@@ -25,6 +25,7 @@ export default async function CaixaPage() {
       title="Caixa"
       subtitle="Frente de caixa: abra a sessao, registre vendas e movimentos, e feche com o saldo apurado."
       topNav={<DashboardTopNav />}
+      isDemo={apiErrorTracker().hasError}
     >
       {!session ? (
         <ChartCard title="Abrir caixa" meta="Nenhuma sessao aberta no momento">

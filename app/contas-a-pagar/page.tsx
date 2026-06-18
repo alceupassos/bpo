@@ -31,7 +31,7 @@ export default async function ContasAPagarPage() {
     : summary.metrics;
 
   return (
-    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />}>
+    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={!entries}>
       <ModuleOverview
         metrics={metrics}
         tableTitle="Agenda operacional de pagamentos"

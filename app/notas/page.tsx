@@ -2,7 +2,7 @@ import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { ChartCard } from "@/components/chart-card";
 import { PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
-import { getFiscalNotes } from "@/lib/api";
+import { getFiscalNotes, apiErrorTracker } from "@/lib/api";
 import { docStatusLabel, formatBRL, formatDateBR } from "@/lib/formatters";
 import { approveNote, postNote, processFullNote, registerProducts, uploadNote } from "./actions";
 
@@ -21,6 +21,7 @@ export default async function NotasPage() {
       title="Notas (OCR)"
       subtitle="Envie a foto/PDF da nota (padaria, posto, boleto). A IA le os itens; voce revisa, lanca no financeiro e cadastra produtos."
       topNav={<DashboardTopNav />}
+      isDemo={apiErrorTracker().hasError}
     >
       <div className="space-y-6">
         <ChartCard title="Enviar nota" meta="A IA extrai fornecedor, valor e itens (cai em revisao manual se a IA nao estiver disponivel)">

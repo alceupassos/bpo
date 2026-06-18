@@ -2,7 +2,7 @@ import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { ChartCard } from "@/components/chart-card";
 import { DataTable } from "@/components/data-table";
 import { PageShell } from "@/components/page-shell";
-import { getProducts } from "@/lib/api";
+import { getProducts, apiErrorTracker } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
 import { createProduct } from "./actions";
 
@@ -21,6 +21,7 @@ export default async function ProdutosPage() {
       title="Produtos"
       subtitle="Catalogo de produtos — cadastre manualmente ou a partir de notas fiscais."
       topNav={<DashboardTopNav />}
+      isDemo={apiErrorTracker().hasError}
     >
       <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
         <ChartCard title="Catalogo" meta={`${products.length} produtos cadastrados`}>

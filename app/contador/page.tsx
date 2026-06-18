@@ -55,6 +55,7 @@ export default function ContadorPage() {
       title="Integração Contador"
       subtitle="Exporte documentos fiscais e relatorios conciliados diretamente para a sua contabilidade."
       topNav={<DashboardTopNav />}
+      isDemo={true}
     >
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
         <div className="space-y-6">

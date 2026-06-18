@@ -14,12 +14,14 @@ export function PageShell({
   title,
   subtitle,
   children,
-  topNav: _topNav // Ignore standard prop and render internally to inject hamburger triggers
+  topNav: _topNav, // Ignore standard prop and render internally to inject hamburger triggers
+  isDemo = false
 }: {
   title: string;
   subtitle?: string;
   children: ReactNode;
   topNav?: ReactNode;
+  isDemo?: boolean;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -59,6 +61,19 @@ export function PageShell({
 
           {/* Page Title & Body */}
           <div className="flex-1 space-y-7">
+            {isDemo && (
+              <div className="mx-1 mb-4 flex items-center justify-between rounded-2xl border border-amber-500/20 bg-amber-500/10 px-5 py-3.5 text-xs font-medium text-amber-600 dark:text-amber-400 backdrop-blur-md">
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                  </span>
+                  <span>
+                    Você está visualizando <strong>dados de demonstração</strong>. A API do servidor está offline ou esta tela está em modo de simulação.
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="px-1">
               <h1 className="text-pretty text-[2.6rem] font-bold leading-[1.05] tracking-tight text-text">
                 {title}

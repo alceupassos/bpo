@@ -1,4 +1,9 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
+
+export const apiErrorTracker = cache(() => ({
+  hasError: false
+}));
 
 /**
  * Camada de acesso à API NestJS. Lê a base de NEXT_PUBLIC_API_URL e injeta o
@@ -203,9 +208,13 @@ async function apiGet<T>(path: string): Promise<T | null> {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       cache: "no-store"
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      apiErrorTracker().hasError = true;
+      return null;
+    }
     return (await res.json()) as T;
   } catch {
+    apiErrorTracker().hasError = true;
     return null;
   }
 }
@@ -363,9 +372,13 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T | null
       body: body ? JSON.stringify(body) : undefined,
       cache: "no-store"
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      apiErrorTracker().hasError = true;
+      return null;
+    }
     return (await res.json()) as T;
   } catch {
+    apiErrorTracker().hasError = true;
     return null;
   }
 }
@@ -382,9 +395,13 @@ export async function apiUpload<T>(path: string, file: File, field = "file"): Pr
       body: form,
       cache: "no-store"
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      apiErrorTracker().hasError = true;
+      return null;
+    }
     return (await res.json()) as T;
   } catch {
+    apiErrorTracker().hasError = true;
     return null;
   }
 }

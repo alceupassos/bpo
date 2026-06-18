@@ -12,6 +12,7 @@ export default async function HomePage() {
       title="Dashboard - Operacao Financeira"
       subtitle={`${hello} caixa, recebimentos, pendencias de aprovacao, OCR e conciliacao.`}
       topNav={<DashboardTopNav />}
+      isDemo={!summary}
     >
       <DashboardScreen summary={summary} />
     </PageShell>

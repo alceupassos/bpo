@@ -27,7 +27,7 @@ export default async function OcrDocumentosPage() {
     : summary.metrics;
 
   return (
-    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />}>
+    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={!docs}>
       <ModuleOverview
         metrics={metrics}
         tableTitle="Fila documental"

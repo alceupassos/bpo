@@ -6,7 +6,8 @@ import {
   getAlerts,
   getAnomalies,
   getForecast,
-  getMonthlySummary
+  getMonthlySummary,
+  apiErrorTracker
 } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
 
@@ -45,6 +46,7 @@ export default async function InteligenciaPage({
     <PageShell
       title="IA Financeira"
       subtitle="Recursos de IA open-source: copiloto, previsão de caixa, detecção de anomalias e alertas inteligentes — todos com fallback determinístico."
+      isDemo={apiErrorTracker().hasError}
     >
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <div className="space-y-6">

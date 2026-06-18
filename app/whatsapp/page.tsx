@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { Paperclip } from "lucide-react";
 import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { PageShell } from "@/components/page-shell";
-import { getChatMessages, getChatThreads } from "@/lib/api";
+import { getChatMessages, getChatThreads, apiErrorTracker } from "@/lib/api";
 import { sendMessage, uploadToChat } from "./actions";
 
 export default async function WhatsappPage({
@@ -22,6 +22,7 @@ export default async function WhatsappPage({
       title="WhatsApp"
       subtitle="Converse com clientes e fornecedores. Anexos de notas caem direto no leitor de NF."
       topNav={<DashboardTopNav />}
+      isDemo={apiErrorTracker().hasError}
     >
       <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
         <section className="rounded-[28px] border border-border bg-surface p-3 soft-glow">

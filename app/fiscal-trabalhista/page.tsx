@@ -59,6 +59,7 @@ export default function FiscalTrabalhistaPage() {
     <PageShell
       title="Fiscal & Trabalhista"
       subtitle="Obrigacoes do Simples Nacional, guias de DAS, folha de pagamento e monitoramento do limite RBT12."
+      isDemo={true}
     >
       {/* Metrics Header */}
       <div className="grid gap-4 md:grid-cols-3">

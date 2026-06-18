@@ -39,7 +39,7 @@ export default async function ContasAReceberPage() {
     : summary.metrics;
 
   return (
-    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />}>
+    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={!entries}>
       <ModuleOverview
         metrics={metrics}
         tableTitle="Carteira de recebiveis"

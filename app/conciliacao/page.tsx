@@ -23,7 +23,7 @@ export default async function ConciliacaoPage() {
     : summary.metrics;
 
   return (
-    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />}>
+    <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={!txs}>
       <ModuleOverview
         metrics={metrics}
         tableTitle="Fila de conciliacao"

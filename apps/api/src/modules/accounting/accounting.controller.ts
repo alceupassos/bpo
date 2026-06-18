@@ -1,4 +1,7 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Res } from "@nestjs/common";
+import type { Response } from "express";
+import { createReadStream } from "fs";
+import { ParseResourceIdPipe } from "../../common/parse-resource-id.pipe";
 import { IsIn, IsOptional, IsString } from "class-validator";
 import { companyScope, CurrentUser } from "../auth/current-user.decorator";
 import type { DecodedJwt } from "../auth/jwt.util";
@@ -30,5 +33,17 @@ export class AccountingController {
   @Post("exports")
   generate(@Body() body: GenerateExportDto, @CurrentUser() user?: DecodedJwt) {
     return this.service.generate(body.competence, body.format ?? "ZIP", companyScope(user));
+  }
+
+  @Get("exports/:id/download")
+  async download(
+    @Param("id", ParseResourceIdPipe) id: string,
+    @CurrentUser() user: DecodedJwt | undefined,
+    @Res() res: Response
+  ) {
+    const { fullPath, filename } = await this.service.download(id, companyScope(user));
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Type", "application/zip");
+    createReadStream(fullPath).pipe(res);
   }
 }

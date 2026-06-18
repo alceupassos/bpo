@@ -94,10 +94,13 @@ export function ContadorScreen({
                   <button disabled className="inline-flex items-center gap-1.5 rounded-xl bg-lime/50 px-4 py-2.5 text-sm font-semibold text-ink">
                     <RefreshCw className="h-4 w-4 animate-spin" /> Compilando...
                   </button>
-                ) : exportDone ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-xl bg-lime px-4 py-2.5 text-sm font-semibold text-ink">
-                    <Download className="h-4 w-4" /> Gerado
-                  </span>
+                ) : exportDone && latest?.id ? (
+                  <a
+                    href={`/api/accounting/${latest.id}/download`}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-lime px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-lime-strong"
+                  >
+                    <Download className="h-4 w-4" /> Baixar ZIP
+                  </a>
                 ) : (
                   <form action={generateExport}>
                     <input type="hidden" name="competence" value={latest?.competence ?? "2026-05"} />

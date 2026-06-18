@@ -1,4 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
+import { basename, dirname, resolve } from "path";
 import { PrismaService } from "../../prisma/prisma.service";
 
 function competenceRange(competence: string): { start: Date; end: Date } | null {
@@ -55,6 +57,28 @@ export class AccountingService {
         generatedAt: new Date()
       }
     });
+  }
+
+  async download(id: string, companyId?: string | null) {
+    const exp = await this.prisma.accountingExport.findUnique({ where: { id } });
+    if (!exp) throw new NotFoundException("Exportacao nao encontrada");
+    if (companyId && exp.companyId !== companyId) {
+      throw new NotFoundException("Exportacao nao encontrada");
+    }
+    const rel = exp.storagePath ?? `storage/exports/${exp.companyId}-${exp.competence}.zip`;
+    const full = resolve(process.cwd(), rel);
+    if (!existsSync(full)) {
+      mkdirSync(dirname(full), { recursive: true });
+      const body = [
+        `Angra BPO — Fechamento ${exp.competence}`,
+        `Notas: ${exp.notesCount}`,
+        `Lancamentos: ${exp.entriesCount}`,
+        `Folha: ${exp.payrollCount}`,
+        `Gerado em: ${exp.generatedAt?.toISOString() ?? new Date().toISOString()}`
+      ].join("\n");
+      writeFileSync(full, body);
+    }
+    return { fullPath: full, filename: basename(full) };
   }
 
   async summary(companyId?: string | null) {

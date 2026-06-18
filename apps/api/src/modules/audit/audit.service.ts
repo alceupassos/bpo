@@ -12,4 +12,14 @@ export class AuditService {
       take: 50
     });
   }
+
+  log(data: {
+    companyId: string;
+    entityType: string;
+    entityId: string;
+    action: string;
+    actor: string;
+  }) {
+    return this.prisma.auditLog.create({ data });
+  }
 }

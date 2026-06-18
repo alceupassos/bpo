@@ -19,7 +19,8 @@ import {
   UsersRound,
   Sparkles,
   Building2,
-  ShieldCheck
+  ShieldCheck,
+  ScrollText
 } from "lucide-react";
 
 const icons = {
@@ -40,7 +41,8 @@ const icons = {
   briefcase: Briefcase,
   "users-round": UsersRound,
   sparkles: Sparkles,
-  "shield-check": ShieldCheck
+  "shield-check": ShieldCheck,
+  "scroll-text": ScrollText
 };
 
 export function IconResolver({

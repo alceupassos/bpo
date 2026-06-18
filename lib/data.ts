@@ -138,6 +138,12 @@ export const alertRows: TableRow[] = [
   { tipo: "Conciliacao pendente", mensagem: "42 transacoes nao conciliadas", qtd: "42", acao: "Ver" }
 ];
 
+export const auditLogRows: TableRow[] = [
+  { data: "18/06/2026 09:15", entidade: "APPROVALS", acao: "POST /approvals/1/approve", responsavel: "operador@bpo.angra", referencia: "apr-001" },
+  { data: "18/06/2026 08:42", entidade: "CASH", acao: "POST /cash/entries/s1", responsavel: "operador@bpo.angra", referencia: "cash-entry" },
+  { data: "17/06/2026 16:30", entidade: "FISCAL-NOTES", acao: "POST /fiscal-notes/1/post", responsavel: "operador@bpo.angra", referencia: "fn-001" }
+];
+
 export const approvalRows: TableRow[] = [
   { descricao: "Frete logistica - NF 8821", valor: "R$ 12.800", solicitante: "Operador BPO", data: "17/06/2026", status: "Pendente" },
   { descricao: "Marketing digital - campanha junho", valor: "R$ 8.450", solicitante: "Operador BPO", data: "16/06/2026", status: "Pendente" },

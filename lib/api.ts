@@ -305,6 +305,16 @@ export interface CorporateDoc {
   expiryDate: string | null;
 }
 
+export interface AuditLogEntry {
+  id: string;
+  companyId: string;
+  entityType: string;
+  entityId: string;
+  action: string;
+  actor: string;
+  createdAt: string;
+}
+
 export interface AccountingExport {
   id: string;
   competence: string;
@@ -354,6 +364,7 @@ export const getPayrollRuns = () => apiGet<PayrollRun[]>("/payroll/runs");
 export const getEmployees = () => apiGet<Employee[]>("/payroll/employees");
 export const getCorporateDocs = () => apiGet<CorporateDoc[]>("/corporate/docs");
 export const getAccountingExports = () => apiGet<AccountingExport[]>("/accounting/exports");
+export const getAuditLogs = () => apiGet<AuditLogEntry[]>("/audit-logs");
 export const getFaturamento12m = () => apiGet<Faturamento12m>("/dashboard/faturamento-12m");
 export const getForecast = () => apiGet<ForecastResult>("/ai/forecast");
 export const getAnomalies = () => apiGet<AnomalyResult>("/ai/anomalies");

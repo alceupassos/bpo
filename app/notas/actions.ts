@@ -36,4 +36,7 @@ export async function processFullNote(formData: FormData) {
   revalidatePath("/notas");
   revalidatePath("/produtos");
   revalidatePath("/caixa");
+  revalidatePath("/contas-a-pagar");
+  revalidatePath("/fornecedores");
+  revalidatePath("/conciliacao");
 }

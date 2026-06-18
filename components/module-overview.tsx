@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { RechartsChart } from "@/components/recharts-chart";
 import { ChartCard } from "@/components/chart-card";
 import { DataTable } from "@/components/data-table";
@@ -18,6 +19,7 @@ export function ModuleOverview({
   chartSeries,
   chartOptions,
   chartType = "bar",
+  customTable,
   // sideTitle/sideCopy mantidos por compatibilidade com as páginas (não usados no layout Monetra)
   sideTitle: _sideTitle,
   sideCopy: _sideCopy
@@ -32,6 +34,7 @@ export function ModuleOverview({
   chartSeries: any;
   chartOptions: any;
   chartType?: "line" | "area" | "bar" | "donut";
+  customTable?: ReactNode;
   sideTitle?: string;
   sideCopy?: string;
 }) {
@@ -56,7 +59,7 @@ export function ModuleOverview({
 
       <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
         <ChartCard title={tableTitle} meta={tableMeta}>
-          <DataTable columns={tableColumns} rows={tableRows} />
+          {customTable ?? <DataTable columns={tableColumns} rows={tableRows} />}
         </ChartCard>
         <ChartCard title={chartTitle} meta={chartMeta}>
           <RechartsChart type={chartType} height={300} series={chartSeries} options={chartOptions} />

@@ -132,11 +132,13 @@ export function reconciliationToRow(
 ): TableRow {
   const account = accounts.find((a) => a.id === tx.bankAccountId);
   return {
+    id: tx.id,
     conta: account ? `${account.bank}` : "Conta",
     extrato: tx.description,
     sugestao: tx.matchedEntryId ? "Match sugerido" : "Sem lancamento",
     divergencia: formatBRL(tx.divergence),
-    status: reconStatusLabel(tx.status)
+    status: reconStatusLabel(tx.status),
+    rawStatus: tx.status
   };
 }
 

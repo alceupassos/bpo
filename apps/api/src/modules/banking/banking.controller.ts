@@ -36,4 +36,9 @@ export class BankingController {
   confirmMatch(@Param("transactionId") transactionId: string) {
     return this.bankingService.confirmMatch(transactionId);
   }
+
+  @Post("reconciliations/divergent/:transactionId")
+  markDivergent(@Param("transactionId") transactionId: string) {
+    return this.bankingService.markDivergent(transactionId);
+  }
 }

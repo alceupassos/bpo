@@ -124,4 +124,11 @@ export class BankingService {
       data: { status: "RECONCILED" }
     });
   }
+
+  markDivergent(transactionId: string) {
+    return this.prisma.bankTransaction.update({
+      where: { id: transactionId },
+      data: { status: "DIVERGENT", matchedEntryId: null }
+    });
+  }
 }

@@ -118,6 +118,15 @@ export interface SessionUser {
   companyId: string | null;
 }
 
+export interface AppUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  companyId: string | null;
+  createdAt: string;
+}
+
 export interface Product {
   id: string;
   companyId: string;
@@ -293,6 +302,7 @@ export const getBankTransactions = () => apiGet<BankTransaction[]>("/bank-transa
 export const getBankAccounts = () => apiGet<BankAccount[]>("/bank-accounts");
 export const getApprovals = () => apiGet<ApprovalRequest[]>("/approvals");
 export const getCompanies = () => apiGet<Company[]>("/companies");
+export const getUsers = () => apiGet<AppUser[]>("/users");
 export const createCompany = (body: unknown) => apiPost<any>("/companies", body);
 export const getCurrentUser = () => apiGet<SessionUser>("/auth/me");
 export const getProducts = () => apiGet<Product[]>("/products");

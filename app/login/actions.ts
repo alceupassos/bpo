@@ -8,21 +8,25 @@ export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
+  let targetRedirect = "/";
   let ok = false;
   try {
-    const { accessToken } = await login(email, password);
+    const { accessToken, user } = await login(email, password);
     const store = await cookies();
-    store.set(AUTH_COOKIE, accessToken, {
+    await store.set(AUTH_COOKIE, accessToken, {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 8
     });
+    if (user.role === "GESTOR_EMPRESA" || user.role === "FINANCEIRO_EMPRESA") {
+      targetRedirect = "/painel-cliente";
+    }
     ok = true;
   } catch {
     redirect("/login?error=1");
   }
-  if (ok) redirect("/");
+  if (ok) redirect(targetRedirect);
 }
 
 export async function logoutAction() {

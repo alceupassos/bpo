@@ -1,8 +1,10 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { cache } from "react";
 
 export const apiErrorTracker = cache(() => ({
-  hasError: false
+  hasError: false,
+  sessionExpired: false
 }));
 
 /**
@@ -201,22 +203,85 @@ async function getToken(): Promise<string | undefined> {
   }
 }
 
-async function apiGet<T>(path: string): Promise<T | null> {
+async function setToken(token: string): Promise<void> {
+  const store = await cookies();
+  store.set(AUTH_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 8
+  });
+}
+
+async function clearToken(): Promise<void> {
+  const store = await cookies();
+  store.delete(AUTH_COOKIE);
+}
+
+async function refreshAccessToken(currentToken: string): Promise<string | null> {
   try {
-    const token = await getToken();
-    const res = await fetch(`${BASE}${path}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    const res = await fetch(`${BASE}/auth/refresh`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${currentToken}` },
       cache: "no-store"
     });
-    if (!res.ok) {
-      apiErrorTracker().hasError = true;
-      return null;
+    if (!res.ok) return null;
+    const data = (await res.json()) as { accessToken: string };
+    await setToken(data.accessToken);
+    return data.accessToken;
+  } catch {
+    return null;
+  }
+}
+
+async function handleSessionExpired(): Promise<never> {
+  apiErrorTracker().hasError = true;
+  apiErrorTracker().sessionExpired = true;
+  await clearToken();
+  redirect("/login?expired=1");
+}
+
+type ApiFetchInit = RequestInit & { token?: string };
+
+async function apiFetch(path: string, init: ApiFetchInit = {}, retried = false): Promise<Response | null> {
+  try {
+    const token = init.token ?? (await getToken());
+    const { token: _t, ...fetchInit } = init;
+    const res = await fetch(`${BASE}${path}`, {
+      ...fetchInit,
+      headers: {
+        ...(fetchInit.headers as Record<string, string> | undefined),
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      cache: "no-store"
+    });
+
+    if (res.status === 401 && token && !retried) {
+      const newToken = await refreshAccessToken(token);
+      if (newToken) {
+        return apiFetch(path, { ...init, token: newToken }, true);
+      }
+      await handleSessionExpired();
     }
-    return (await res.json()) as T;
+
+    if (res.status === 401) {
+      await handleSessionExpired();
+    }
+
+    return res;
   } catch {
     apiErrorTracker().hasError = true;
     return null;
   }
+}
+
+async function apiGet<T>(path: string): Promise<T | null> {
+  const res = await apiFetch(path);
+  if (!res || !res.ok) {
+    if (res && !res.ok) apiErrorTracker().hasError = true;
+    return null;
+  }
+  return (await res.json()) as T;
 }
 
 export const getDashboardSummary = () => apiGet<DashboardSummary>("/dashboard/summary");
@@ -373,49 +438,28 @@ export const getMonthlySummary = () => apiGet<MonthlySummary>("/ai/monthly-summa
 
 /** POST autenticado (JSON) — usado por server actions. */
 export async function apiPost<T>(path: string, body?: unknown): Promise<T | null> {
-  try {
-    const token = await getToken();
-    const res = await fetch(`${BASE}${path}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      body: body ? JSON.stringify(body) : undefined,
-      cache: "no-store"
-    });
-    if (!res.ok) {
-      apiErrorTracker().hasError = true;
-      return null;
-    }
-    return (await res.json()) as T;
-  } catch {
-    apiErrorTracker().hasError = true;
+  const res = await apiFetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res || !res.ok) {
+    if (res && !res.ok) apiErrorTracker().hasError = true;
     return null;
   }
+  return (await res.json()) as T;
 }
 
 /** Upload multipart autenticado — usado por server actions com arquivo. */
 export async function apiUpload<T>(path: string, file: File, field = "file"): Promise<T | null> {
-  try {
-    const token = await getToken();
-    const form = new FormData();
-    form.append(field, file);
-    const res = await fetch(`${BASE}${path}`, {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: form,
-      cache: "no-store"
-    });
-    if (!res.ok) {
-      apiErrorTracker().hasError = true;
-      return null;
-    }
-    return (await res.json()) as T;
-  } catch {
-    apiErrorTracker().hasError = true;
+  const form = new FormData();
+  form.append(field, file);
+  const res = await apiFetch(path, { method: "POST", body: form });
+  if (!res || !res.ok) {
+    if (res && !res.ok) apiErrorTracker().hasError = true;
     return null;
   }
+  return (await res.json()) as T;
 }
 
 /** Login direto (usado pela server action). Lança em credenciais inválidas. */

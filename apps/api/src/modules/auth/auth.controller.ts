@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UnauthorizedException } from "@nestjs/common";
+import { Body, Controller, Get, Headers, Post, UnauthorizedException } from "@nestjs/common";
 import { IsEmail, IsString, MinLength } from "class-validator";
 import { AuthService } from "./auth.service";
 import { Public } from "./public.decorator";
@@ -31,5 +31,14 @@ export class AuthController {
   me(@CurrentUser() user?: DecodedJwt) {
     if (!user) throw new UnauthorizedException();
     return this.authService.me(user);
+  }
+
+  @Public()
+  @Post("refresh")
+  refresh(@Headers("authorization") authorization?: string) {
+    if (!authorization?.startsWith("Bearer ")) {
+      throw new UnauthorizedException("Token ausente");
+    }
+    return this.authService.refresh(authorization.slice(7));
   }
 }

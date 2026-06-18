@@ -4,10 +4,11 @@ import { TiltWrapper } from "@/components/tilt-wrapper";
 export default async function LoginPage({
   searchParams
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; expired?: string }>;
 }) {
   const params = await searchParams;
   const hasError = params?.error === "1";
+  const sessionExpired = params?.expired === "1";
 
   return (
     <div className="grid min-h-screen place-items-center bg-bg panel-grid p-6">
@@ -50,6 +51,12 @@ export default async function LoginPage({
               className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-text outline-none transition-colors focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/20"
             />
           </div>
+
+          {sessionExpired ? (
+            <p className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-700 dark:text-amber-400" aria-live="polite">
+              Sessao expirada. Faca login novamente para continuar.
+            </p>
+          ) : null}
 
           {hasError ? (
             <p className="rounded-2xl bg-icon-red-bg px-4 py-2 text-sm text-danger" aria-live="polite">

@@ -1,7 +1,13 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../prisma/prisma.service";
-import { passwordMatches, signJwt, type DecodedJwt, type JwtPayload } from "./jwt.util";
+import {
+  passwordMatches,
+  signJwt,
+  verifyJwtForRefresh,
+  type DecodedJwt,
+  type JwtPayload
+} from "./jwt.util";
 
 @Injectable()
 export class AuthService {
@@ -43,6 +49,29 @@ export class AuthService {
       email: decoded.email,
       role: decoded.role,
       companyId: decoded.companyId
+    };
+  }
+
+  /** Renova o JWT a partir de um token válido ou expirado recentemente. */
+  async refresh(token: string) {
+    const decoded = verifyJwtForRefresh(token, this.secret());
+    if (!decoded) {
+      throw new UnauthorizedException("Sessao expirada");
+    }
+    const user = await this.prisma.user.findUnique({ where: { id: decoded.sub } });
+    if (!user) {
+      throw new UnauthorizedException("Sessao expirada");
+    }
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      companyId: user.companyId
+    };
+    return {
+      accessToken: signJwt(payload, this.secret()),
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, companyId: user.companyId }
     };
   }
 }

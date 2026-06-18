@@ -26,7 +26,7 @@ export function signJwt(payload: JwtPayload, secret: string, expiresInSec = 60 *
   return `${data}.${sig}`;
 }
 
-export function verifyJwt(token: string, secret: string): DecodedJwt | null {
+function decodeSignedJwt(token: string, secret: string): DecodedJwt | null {
   const parts = token.split(".");
   if (parts.length !== 3) return null;
   const [headerB64, bodyB64, sig] = parts;
@@ -36,12 +36,30 @@ export function verifyJwt(token: string, secret: string): DecodedJwt | null {
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
   try {
-    const payload = JSON.parse(Buffer.from(bodyB64, "base64url").toString()) as DecodedJwt;
-    if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) return null;
-    return payload;
+    return JSON.parse(Buffer.from(bodyB64, "base64url").toString()) as DecodedJwt;
   } catch {
     return null;
   }
+}
+
+export function verifyJwt(token: string, secret: string): DecodedJwt | null {
+  const payload = decodeSignedJwt(token, secret);
+  if (!payload) return null;
+  if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) return null;
+  return payload;
+}
+
+/** Verifica assinatura ignorando expiração (refresh dentro da janela de graça). */
+export function verifyJwtForRefresh(
+  token: string,
+  secret: string,
+  graceSec = 60 * 60 * 24 * 7
+): DecodedJwt | null {
+  const payload = decodeSignedJwt(token, secret);
+  if (!payload?.exp) return null;
+  const now = Math.floor(Date.now() / 1000);
+  if (now - payload.exp > graceSec) return null;
+  return payload;
 }
 
 /** Hasheia uma senha usando bcrypt. */

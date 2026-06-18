@@ -9,13 +9,20 @@ export class DashboardService {
 
   async summary(companyId?: string | null) {
     const where = companyId ? { companyId } : {};
-    const [entries, ocrPendente, conciliacaoPendente, conciliados, totalTx] = await Promise.all([
-      this.prisma.financialEntry.findMany({ where }),
-      this.prisma.document.count({ where: { ...where, status: "NEEDS_REVIEW" } }),
-      this.prisma.bankTransaction.count({ where: { ...where, status: { not: "RECONCILED" } } }),
-      this.prisma.bankTransaction.count({ where: { ...where, status: "RECONCILED" } }),
-      this.prisma.bankTransaction.count({ where })
-    ]);
+    const [entries, ocrPendente, conciliacaoPendente, conciliados, totalTx, companies, approvals] =
+      await Promise.all([
+        this.prisma.financialEntry.findMany({ where }),
+        this.prisma.document.count({ where: { ...where, status: "NEEDS_REVIEW" } }),
+        this.prisma.bankTransaction.count({ where: { ...where, status: { not: "RECONCILED" } } }),
+        this.prisma.bankTransaction.count({ where: { ...where, status: "RECONCILED" } }),
+        this.prisma.bankTransaction.count({ where }),
+        this.prisma.company.count(),
+        this.prisma.approvalRequest.findMany({
+          where: { ...(companyId ? { companyId } : {}), status: "APPROVED" },
+          take: 200,
+          orderBy: { createdAt: "desc" }
+        })
+      ]);
 
     const now = Date.now();
     const payables = entries.filter((e) => e.type === "PAYABLE");
@@ -35,6 +42,18 @@ export class DashboardService {
     const recebido = receivables.filter((e) => e.status === "RECEIVED").reduce((s, e) => s + Number(e.amount), 0);
     const pago = payables.filter((e) => e.status === "PAID").reduce((s, e) => s + Number(e.amount), 0);
 
+    const slaSamples = approvals.filter((a) => a.createdAt);
+    const slaMedio =
+      slaSamples.length > 0
+        ? Math.round(
+            (slaSamples.reduce((s, a) => s + (Date.now() - new Date(a.createdAt).getTime()), 0) /
+              slaSamples.length /
+              86400000) *
+              10
+          ) / 10
+        : 0;
+    const automacao = totalTx ? Math.round((conciliados / totalTx) * 100) : 0;
+
     return {
       saldoProjetado: Math.round(aReceber - aPagar + recebido),
       aPagar: Math.round(aPagar),
@@ -45,8 +64,9 @@ export class DashboardService {
       ocrPendente,
       conciliacaoPendente,
       taxaConciliacao: totalTx ? Math.round((conciliados / totalTx) * 1000) / 10 : 0,
-      slaMedio: 1.8,
-      automacao: 63
+      slaMedio,
+      automacao,
+      clientesAtivos: companies
     };
   }
 

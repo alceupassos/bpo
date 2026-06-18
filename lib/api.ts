@@ -47,6 +47,7 @@ export interface DashboardSummary {
   taxaConciliacao: number;
   slaMedio: number;
   automacao: number;
+  clientesAtivos?: number;
 }
 
 export interface Cashflow {
@@ -398,6 +399,7 @@ export interface AccountingExport {
   notesCount: number;
   entriesCount: number;
   payrollCount: number;
+  storagePath?: string | null;
   generatedAt: string | null;
 }
 

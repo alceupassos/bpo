@@ -136,6 +136,7 @@ export interface Product {
   unit: string;
   price: number;
   category: string | null;
+  imageUrl: string | null;
   createdAt: string;
 }
 
@@ -534,11 +535,31 @@ export const importProductsOcr = (file: File) =>
     "/products/import-ocr",
     file
   );
+export const setProductImage = (id: string, imageUrl: string) =>
+  apiPatch<Product>(`/products/${id}`, { imageUrl });
+export const fetchProductPhoto = (id: string) =>
+  apiPost<{ ok: boolean; imageUrl: string | null }>(`/products/${id}/fetch-photo`);
+export const autoProductPhotos = () =>
+  apiPost<{ ok: boolean; filled: number; total: number }>("/products/photos/auto");
 
 /** POST autenticado (JSON) — usado por server actions. */
 export async function apiPost<T>(path: string, body?: unknown): Promise<T | null> {
   const res = await apiFetch(path, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res || !res.ok) {
+    if (res && !res.ok) apiErrorTracker().hasError = true;
+    return null;
+  }
+  return (await res.json()) as T;
+}
+
+/** PATCH autenticado (JSON) — usado por server actions de atualização parcial. */
+export async function apiPatch<T>(path: string, body?: unknown): Promise<T | null> {
+  const res = await apiFetch(path, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined
   });

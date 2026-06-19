@@ -2,14 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import {
+  autoProductPhotos,
   cancelOrder,
   createOrder,
   createPix,
+  fetchProductPhoto,
   getPaymentStatus,
   identifyCustomer,
   importProductsOcr,
   payOrder,
   salesAssist,
+  setProductImage,
   type IdentifyResult,
   type Order,
   type PixResult,
@@ -61,6 +64,31 @@ export async function assistAction(text: string): Promise<SalesAssistResult | nu
 export async function identifyQrAction(qrToken: string): Promise<IdentifyResult | null> {
   if (!qrToken.trim()) return null;
   return identifyCustomer({ method: "QR", qrToken });
+}
+
+/** Salva a foto batida na câmera (data URL JPEG já reduzido no cliente). */
+export async function setProductPhotoAction(id: string, dataUrl: string) {
+  if (!id || !dataUrl.startsWith("data:image/")) return null;
+  const updated = await setProductImage(id, dataUrl);
+  revalidatePath("/pdv");
+  revalidatePath("/pdv/loja");
+  return updated;
+}
+
+/** Busca uma foto do produto na internet (Openverse/LoremFlickr). */
+export async function fetchProductPhotoAction(id: string) {
+  const res = await fetchProductPhoto(id);
+  revalidatePath("/pdv");
+  revalidatePath("/pdv/loja");
+  return res;
+}
+
+/** Preenche fotos de todos os produtos sem imagem. */
+export async function autoPhotosAction() {
+  const res = await autoProductPhotos();
+  revalidatePath("/pdv");
+  revalidatePath("/pdv/loja");
+  return res;
 }
 
 /** OCR de nota do fornecedor → entrada de produtos no catálogo (form action). */

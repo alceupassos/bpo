@@ -42,6 +42,10 @@ class CreateProductDto {
   @IsOptional()
   @IsString()
   category?: string;
+
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
 }
 
 class StockMoveDto {
@@ -99,5 +103,15 @@ export class ProductsController {
   @Post(":id/stock")
   move(@Param("id") id: string, @Body() body: StockMoveDto) {
     return this.productsService.move(id, body.type, body.qty, { reason: body.reason, refType: "MANUAL" });
+  }
+
+  @Post("photos/auto")
+  autoPhotos(@CurrentUser() user?: DecodedJwt) {
+    return this.productsService.autoPhotos(companyScope(user));
+  }
+
+  @Post(":id/fetch-photo")
+  fetchPhoto(@Param("id") id: string) {
+    return this.productsService.fetchPhoto(id);
   }
 }

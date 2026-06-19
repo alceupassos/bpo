@@ -268,6 +268,7 @@ model Product {
   minStock     Decimal  @db.Decimal(14, 3) @default(0)
   supplierId   String?
   category     String?
+  imageUrl     String?  // foto do produto: URL da internet ou data URL (foto batida no PDV)
   sourceNoteId String?
   createdAt    DateTime @default(now())
 

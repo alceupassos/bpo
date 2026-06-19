@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,7 +10,7 @@ import {
   Plus,
   QrCode,
   ScanLine,
-  Search,
+  ShoppingCart,
   Sparkles,
   Trash2,
   UserCheck,
@@ -20,6 +20,7 @@ import clsx from "clsx";
 import type { Customer, Order, PixResult, Product } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
 import { BarcodeScanner } from "@/components/pdv/barcode-scanner";
+import { ProductGrid } from "@/components/pdv/product-grid";
 import { PaymentDrawer } from "@/components/pdv/payment-drawer";
 import {
   assistAction,
@@ -30,7 +31,7 @@ import {
   type CartLine
 } from "@/app/pdv/actions";
 
-type CartItem = { productId?: string; description: string; qty: number; unitPrice: number };
+type CartItem = { productId?: string; description: string; qty: number; unitPrice: number; imageUrl?: string | null };
 
 type PaymentMethod = "DINHEIRO" | "CARTAO" | "PIX" | "CREDIARIO";
 
@@ -56,7 +57,6 @@ export function PdvTerminal({
 }) {
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [query, setQuery] = useState("");
   const [discount, setDiscount] = useState(0);
   const [method, setMethod] = useState<PaymentMethod>("DINHEIRO");
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -68,16 +68,9 @@ export function PdvTerminal({
   const [finalizing, setFinalizing] = useState(false);
   const [drawer, setDrawer] = useState<DrawerState>(null);
 
-  const matches = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return products
-      .filter((p) => p.name.toLowerCase().includes(q) || (p.barcode ?? "").includes(q))
-      .slice(0, 8);
-  }, [products, query]);
-
   const subtotal = cart.reduce((s, i) => s + i.qty * i.unitPrice, 0);
   const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
+  const itemCount = cart.reduce((s, i) => s + i.qty, 0);
 
   function addProduct(p: Product) {
     setCart((prev) => {
@@ -87,9 +80,8 @@ export function PdvTerminal({
         next[idx] = { ...next[idx], qty: next[idx].qty + 1 };
         return next;
       }
-      return [...prev, { productId: p.id, description: p.name, qty: 1, unitPrice: Number(p.price) }];
+      return [...prev, { productId: p.id, description: p.name, qty: 1, unitPrice: Number(p.price), imageUrl: p.imageUrl }];
     });
-    setQuery("");
   }
 
   function addByBarcode(code: string) {
@@ -200,105 +192,96 @@ export function PdvTerminal({
           </div>
         )}
 
-        <div className="rounded-[28px] border border-border bg-surface p-5 soft-glow">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-faint" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar produto por nome ou código…"
-                className={clsx(inputClass, "pl-10")}
-              />
+        {/* Telinha grande do pedido — itens lançados / a lançar */}
+        <div className="overflow-hidden rounded-[28px] border border-border bg-ink text-white soft-glow">
+          <div className="flex items-center justify-between gap-4 border-b border-white/10 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-lime text-ink">
+                <ShoppingCart className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-white/70">Pedido em andamento</p>
+                <p className="text-lg font-bold leading-tight">
+                  {itemCount} {itemCount === 1 ? "item" : "itens"}
+                </p>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setScannerOpen((v) => !v)}
-              className="flex items-center gap-2 rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm font-semibold text-text hover:bg-surface"
-            >
-              <ScanLine className="h-4 w-4 text-lime" /> Escanear
-            </button>
+            <div className="text-right">
+              <p className="text-xs uppercase tracking-wider text-white/50">Total</p>
+              <p className="text-3xl font-extrabold tabular-nums text-lime">{formatBRL(total)}</p>
+            </div>
           </div>
 
-          {matches.length > 0 && (
-            <div className="mt-3 flex flex-col gap-1.5">
-              {matches.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => addProduct(p)}
-                  className="flex items-center justify-between rounded-2xl border border-border bg-surface-muted px-4 py-2.5 text-left text-sm text-text hover:border-lime/40"
-                >
-                  <span className="truncate">
-                    {p.name}
-                    {p.barcode ? <span className="ml-2 text-xs text-text-faint">#{p.barcode}</span> : null}
-                  </span>
-                  <span className="font-semibold tabular-nums">{formatBRL(Number(p.price))}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {scannerOpen && (
-            <div className="mt-4">
-              <BarcodeScanner onDetected={addByBarcode} onClose={() => setScannerOpen(false)} />
-            </div>
-          )}
-        </div>
-
-        {/* Carrinho */}
-        <div className="rounded-[28px] border border-border bg-surface p-5 soft-glow">
-          <h3 className="mb-4 text-[1.2rem] font-semibold text-text">Carrinho</h3>
           {cart.length === 0 ? (
-            <p className="py-8 text-center text-sm text-text-faint">
-              Adicione produtos pela busca, leitor de código ou copiloto de IA.
+            <p className="px-6 py-12 text-center text-sm text-white/50">
+              Toque num produto, escaneie o código ou use o copiloto para lançar itens.
             </p>
           ) : (
-            <div className="flex flex-col gap-2">
+            <ul className="max-h-[42vh] divide-y divide-white/10 overflow-y-auto">
               {cart.map((item, idx) => (
-                <div
-                  key={`${item.productId ?? item.description}-${idx}`}
-                  className="flex items-center gap-3 rounded-2xl border border-border bg-surface-muted px-3 py-2.5"
-                >
+                <li key={`${item.productId ?? item.description}-${idx}`} className="flex items-center gap-3 px-4 py-3">
+                  <span className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-white/10">
+                    {item.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.imageUrl} alt={item.description} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center text-white/40">
+                        <ShoppingCart className="h-5 w-5" />
+                      </span>
+                    )}
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-text">{item.description}</p>
-                    <p className="text-xs text-text-faint">{formatBRL(item.unitPrice)} / un</p>
+                    <p className="truncate text-base font-semibold">{item.description}</p>
+                    <p className="text-xs text-white/50">{formatBRL(item.unitPrice)} / un</p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => updateQty(idx, -1)}
                       aria-label="Diminuir"
-                      className="grid h-7 w-7 place-items-center rounded-lg bg-surface text-text-soft hover:text-text"
+                      className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-white/80 hover:bg-white/20"
                     >
-                      <Minus className="h-3.5 w-3.5" />
+                      <Minus className="h-4 w-4" />
                     </button>
-                    <span className="w-7 text-center text-sm font-semibold tabular-nums text-text">{item.qty}</span>
+                    <span className="w-8 text-center text-base font-bold tabular-nums">{item.qty}</span>
                     <button
                       type="button"
                       onClick={() => updateQty(idx, 1)}
                       aria-label="Aumentar"
-                      className="grid h-7 w-7 place-items-center rounded-lg bg-surface text-text-soft hover:text-text"
+                      className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-white/80 hover:bg-white/20"
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-4 w-4" />
                     </button>
                   </div>
-                  <span className="w-24 text-right text-sm font-semibold tabular-nums text-text">
+                  <span className="w-24 text-right text-base font-bold tabular-nums">
                     {formatBRL(item.qty * item.unitPrice)}
                   </span>
                   <button
                     type="button"
                     onClick={() => removeLine(idx)}
                     aria-label="Remover"
-                    className="grid h-7 w-7 place-items-center rounded-lg text-text-faint hover:text-danger"
+                    className="grid h-8 w-8 place-items-center rounded-lg text-white/40 hover:text-danger"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-4 w-4" />
                   </button>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
+
+        {/* Catálogo com fotos + leitor de código */}
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setScannerOpen((v) => !v)}
+            className="flex items-center gap-2 rounded-2xl border border-border bg-surface-muted px-4 py-2.5 text-sm font-semibold text-text hover:bg-surface"
+          >
+            <ScanLine className="h-4 w-4 text-lime" /> {scannerOpen ? "Fechar leitor" : "Escanear código"}
+          </button>
+        </div>
+        {scannerOpen && <BarcodeScanner onDetected={addByBarcode} onClose={() => setScannerOpen(false)} />}
+        <ProductGrid products={products} onAdd={addProduct} />
 
         {/* Copiloto de vendas */}
         <div className="rounded-[28px] border border-lime/25 bg-lime/5 p-5">

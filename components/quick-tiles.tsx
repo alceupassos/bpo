@@ -1,17 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDownToLine, MoreHorizontal, Scale } from "lucide-react";
+import { ArrowDownToLine, MoreHorizontal, Scale, ShoppingCart } from "lucide-react";
 
 const tiles = [
   { href: "/notas", label: "Importar", Icon: ArrowDownToLine },
   { href: "/conciliacao", label: "Conciliar", Icon: Scale },
+  { href: "/pdv", label: "PDV", Icon: ShoppingCart },
   { href: "/relatorios", label: "Mais", Icon: MoreHorizontal }
 ];
 
 export function QuickTiles() {
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-4 gap-3">
       {tiles.map(({ href, label, Icon }) => (
         <Link
           key={label}

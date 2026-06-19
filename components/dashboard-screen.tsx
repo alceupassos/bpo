@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDownLeft, ArrowUpRight, Plus } from "lucide-react";
+import { ArrowDownLeft, ArrowRight, ArrowUpRight, Plus, ShoppingCart } from "lucide-react";
 import { dashboardKpis } from "@/lib/data";
 import type { DashboardSummary } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
@@ -126,6 +126,22 @@ export function DashboardScreen({ summary }: { summary?: DashboardSummary | null
 
       {/* Coluna direita */}
       <div className="space-y-5">
+        <TiltWrapper>
+          <Link
+            href={"/pdv/loja" as never}
+            aria-label="Abrir PDV — frente de caixa em tela cheia"
+            className="group flex items-center gap-4 rounded-[24px] bg-lime p-5 text-ink transition-colors hover:bg-lime-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
+          >
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-ink/10">
+              <ShoppingCart className="h-6 w-6" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-lg font-bold leading-tight">Abrir PDV</span>
+              <span className="block text-sm font-medium text-ink/70">Frente de caixa em tela cheia</span>
+            </span>
+            <ArrowRight className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+          </Link>
+        </TiltWrapper>
         <ContactsRow />
         <OperationalCard balance={summary ? formatBRL(summary.aReceber) : undefined} />
         <div className="grid grid-cols-2 gap-3">

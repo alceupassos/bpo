@@ -21,4 +21,9 @@ export class DashboardController {
   faturamento12m(@CurrentUser() user?: DecodedJwt) {
     return this.dashboardService.faturamento12m(companyScope(user));
   }
+
+  @Get("pdv")
+  pdv(@CurrentUser() user?: DecodedJwt) {
+    return this.dashboardService.pdvSummary(companyScope(user));
+  }
 }

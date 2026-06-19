@@ -162,6 +162,15 @@ export const activityRows: TableRow[] = [
 ];
 
 export const pageSummaries = {
+  "/pdv": {
+    title: "PDV — Ponto de Venda",
+    subtitle: "Frente de caixa moderna: carrinho, leitor por camera, IA e Pix em um clique.",
+    metrics: [
+      { label: "Vendas hoje", value: "R$ 0" },
+      { label: "Pedidos", value: "0" },
+      { label: "Ticket medio", value: "R$ 0" }
+    ]
+  },
   "/contas-a-pagar": {
     title: "Contas a Pagar",
     subtitle: "Controle de obrigacoes, aprovacoes e baixas por fornecedor.",

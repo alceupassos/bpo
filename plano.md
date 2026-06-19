@@ -9,6 +9,18 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluído
 
 ---
 
+## Módulo PDV (Ponto de Venda) full-stack com IA (2026-06-19) ✅ (validação local)
+- [x] **Schema Prisma**: +`Order`/`OrderItem` (+enum `OrderStatus`), migration aditiva `20260619120000_add_orders_pdv`; `prisma generate` OK
+- [x] **Backend `sales/`**: `POST /sales` (carrinho), `GET /sales`, `GET /sales/:id`, `POST /sales/:id/pay` (transação Prisma única: Order PAID + FinancialEntry RECEIVABLE pago + CashEntry SALE + StockMovement OUT + AuditLog), `POST /sales/:id/cancel` (estorna estoque), `POST /sales/assist` (copiloto LLM + fallback heurístico). Crediário acima do limite → `ApprovalRequest`
+- [x] **Backend `payments/` (Mercado Pago)**: `POST /payments/pix` (QR dinâmico, fallback manual sem `MP_ACCESS_TOKEN`), `GET /payments/status/:id`, `POST /payments/webhook` (`@Public`, re-consulta o pagamento na API MP — idempotente via `markPaidByMp`)
+- [x] **Backend IA**: `POST /products/import-ocr` (nota → produtos/estoque via `AiVisionService`), `GET /dashboard/pdv` (vendas/dia, ticket médio, vendas por hora, top produtos, anti-fraude)
+- [x] **Frontend menu**: ícone `shopping-cart` (`icon-resolver.tsx`), item **PDV** no grupo Operações (`sidebar.tsx`), `pageSummaries["/pdv"]`
+- [x] **Frontend tela `/pdv`**: `app/pdv/page.tsx` + `actions.ts`; `components/pdv/{pdv-terminal,barcode-scanner,payment-drawer}.tsx` (carrinho, busca, leitor por câmera via BarcodeDetector nativo + fallback digitação, copiloto IA, drawer Pix com QR e polling, KPIs + gráfico vendas/hora + top produtos + OCR). `lib/api.ts` com tipos/clients do PDV
+- [x] **Frontend Painel Cliente**: atalho + variante tela-cheia `app/pdv/loja/page.tsx`
+- [x] **Env**: `.env.example` (apps/api) com `MP_ACCESS_TOKEN`, `MP_NOTIFICATION_URL`, `MP_WEBHOOK_SECRET`, `AI_TEXT_PROVIDER`, `OLLAMA_*`
+- [x] **Validação local**: `tsc -p apps/api` OK · `next lint` OK · `next build` OK (rotas `/pdv` e `/pdv/loja`). Obs.: excluído `deploy/` do tsconfig do frontend (script VPS-only que quebrava o build, sem relação com PDV)
+- [ ] **Pendente (requer DB)**: aplicar `prisma migrate deploy` no Postgres do servidor + teste e2e da venda (não executado para não tocar produção sem autorização)
+
 ## Fase 0 — Handoff (à prova de fim-de-crédito) ✅
 - [x] `promptbak.md` — prompt grande de handoff para outro modelo
 - [x] `plano.md` — este checklist vivo

@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ShoppingCart } from "lucide-react";
 import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { ClientPanelScreen } from "@/components/client-panel-screen";
 import { PageShell } from "@/components/page-shell";
@@ -40,6 +42,21 @@ export default async function PainelClientePage() {
 
   return (
     <PageShell title={summary.title} subtitle={summary.subtitle} topNav={<DashboardTopNav />} isDemo={!payables || !receivables || !approvals}>
+      <Link
+        href="/pdv/loja"
+        className="mb-6 flex items-center justify-between rounded-[24px] border border-lime/30 bg-lime/10 px-5 py-4 transition-colors hover:bg-lime/20"
+      >
+        <div className="flex items-center gap-3">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-lime text-ink">
+            <ShoppingCart className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="text-sm font-bold text-text">Abrir PDV (frente de caixa)</p>
+            <p className="text-xs text-text-soft">Venda em tela cheia com leitor, Pix e IA.</p>
+          </div>
+        </div>
+        <span className="text-sm font-semibold text-lime">Abrir →</span>
+      </Link>
       <ClientPanelScreen metrics={metrics} pending={pending} history={history} />
     </PageShell>
   );

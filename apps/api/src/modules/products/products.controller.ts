@@ -1,7 +1,18 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UploadedFile,
+  UseInterceptors
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { IsIn, IsNumber, IsOptional, IsString } from "class-validator";
 import { companyScope, CurrentUser } from "../auth/current-user.decorator";
 import type { DecodedJwt } from "../auth/jwt.util";
+import type { UploadedFileLike } from "../documents/storage.service";
 import { ProductsService } from "./products.service";
 
 class CreateProductDto {
@@ -62,6 +73,12 @@ export class ProductsController {
   @Get("movements")
   movements(@CurrentUser() user?: DecodedJwt) {
     return this.productsService.movements(companyScope(user));
+  }
+
+  @Post("import-ocr")
+  @UseInterceptors(FileInterceptor("file"))
+  importOcr(@UploadedFile() file: UploadedFileLike, @CurrentUser() user?: DecodedJwt) {
+    return this.productsService.importFromOcr(file, companyScope(user));
   }
 
   @Get(":id")

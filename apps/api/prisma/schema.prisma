@@ -143,6 +143,12 @@ enum StockMoveType {
   ADJUST
 }
 
+enum OrderStatus {
+  OPEN
+  PAID
+  CANCELLED
+}
+
 model Company {
   id        String   @id @default(cuid())
   legalName String
@@ -475,6 +481,44 @@ model CorporateDoc {
   createdAt   DateTime         @default(now())
 
   @@index([companyId])
+}
+
+// Vendas do PDV (frente de caixa). Toda venda paga é orquestrada em SalesService
+// numa transação única: marca o pedido como PAID, gera o lançamento financeiro
+// (RECEIVABLE), registra a venda no caixa (CashEntry SALE) e dá baixa de estoque
+// (StockMovement OUT). mpPaymentId liga o pedido ao pagamento do Mercado Pago.
+model Order {
+  id            String      @id @default(cuid())
+  companyId     String
+  sessionId     String?
+  customerId    String?
+  number        Int         @default(0)
+  status        OrderStatus @default(OPEN)
+  subtotal      Decimal     @db.Decimal(14, 2) @default(0)
+  discount      Decimal     @db.Decimal(14, 2) @default(0)
+  total         Decimal     @db.Decimal(14, 2) @default(0)
+  paymentMethod String?
+  mpPaymentId   String?     @unique
+  createdBy     String      @default("")
+  createdAt     DateTime    @default(now())
+  paidAt        DateTime?
+  items         OrderItem[]
+
+  @@index([companyId])
+  @@index([sessionId])
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  productId   String?
+  description String
+  qty         Decimal @db.Decimal(14, 3) @default(1)
+  unitPrice   Decimal @db.Decimal(14, 2) @default(0)
+  total       Decimal @db.Decimal(14, 2) @default(0)
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
 }
 
 // Pacotes de exportação para o contador (XML/CSV/ZIP por competência).

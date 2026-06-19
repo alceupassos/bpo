@@ -21,8 +21,10 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { DocumentsModule } from "./documents/documents.module";
 import { FinancialEntriesModule } from "./financial-entries/financial-entries.module";
 import { FiscalNotesModule } from "./fiscal-notes/fiscal-notes.module";
+import { PaymentsModule } from "./payments/payments.module";
 import { PayrollModule } from "./payroll/payroll.module";
 import { ProductsModule } from "./products/products.module";
+import { SalesModule } from "./sales/sales.module";
 import { SuppliersModule } from "./suppliers/suppliers.module";
 import { TaxObligationsModule } from "./tax-obligations/tax-obligations.module";
 import { UsersModule } from "./users/users.module";
@@ -49,6 +51,8 @@ import { UsersModule } from "./users/users.module";
     DashboardModule,
     AuditModule,
     ProductsModule,
+    SalesModule,
+    PaymentsModule,
     CashModule,
     FiscalNotesModule,
     ChatModule,

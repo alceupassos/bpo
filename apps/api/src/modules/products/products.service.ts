@@ -1,5 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
+import { AiVisionService } from "../ai/ai-vision.service";
+import type { UploadedFileLike } from "../documents/storage.service";
+
+const COMPANY_FALLBACK = "company-1";
 
 type ProductPayload = {
   name: string;
@@ -14,7 +18,10 @@ type ProductPayload = {
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly vision: AiVisionService
+  ) {}
 
   list(companyId?: string | null) {
     return this.prisma.product.findMany({
@@ -106,5 +113,66 @@ export class ProductsService {
       orderBy: { createdAt: "desc" },
       take: 100
     });
+  }
+
+  /**
+   * Importa produtos a partir da foto de uma nota fiscal via OCR (AiVisionService).
+   * Cada item vira/atualiza um produto no catálogo e dá entrada de estoque (IN).
+   * Fallback manual embutido no AiVisionService: sem IA, devolve needsReview.
+   */
+  async importFromOcr(file: UploadedFileLike, companyId?: string | null) {
+    const company = companyId ?? COMPANY_FALLBACK;
+    const r = await this.vision.extract(file);
+    const products: unknown[] = [];
+
+    for (const item of r.items) {
+      if (!item.description) continue;
+      const existing = await this.prisma.product.findFirst({
+        where: { companyId: company, name: { equals: item.description, mode: "insensitive" } }
+      });
+
+      const qty = item.qty > 0 ? item.qty : 0;
+      const product = existing
+        ? await this.prisma.product.update({
+            where: { id: existing.id },
+            data: {
+              stockQty: { increment: qty },
+              cost: item.unitPrice || Number(existing.cost)
+            }
+          })
+        : await this.prisma.product.create({
+            data: {
+              companyId: company,
+              name: item.description,
+              unit: "UN",
+              price: item.unitPrice ?? 0,
+              cost: item.unitPrice ?? 0,
+              stockQty: qty
+            }
+          });
+
+      if (qty > 0) {
+        await this.prisma.stockMovement.create({
+          data: {
+            companyId: company,
+            productId: (product as { id: string }).id,
+            type: "IN",
+            qty,
+            reason: "Entrada por OCR de nota",
+            refType: "OCR"
+          }
+        });
+      }
+      products.push(product);
+    }
+
+    return {
+      imported: products.length,
+      source: r.source,
+      needsReview: r.source === "MANUAL",
+      supplier: r.supplierName,
+      extracted: r,
+      products
+    };
   }
 }

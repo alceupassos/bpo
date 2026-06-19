@@ -70,6 +70,64 @@ export class DashboardService {
     };
   }
 
+  /**
+   * Indicadores do PDV no dia: vendas, ticket médio, vendas por hora, top
+   * produtos e alertas simples de anti-fraude (descontos/sangrias fora do padrão).
+   */
+  async pdvSummary(companyId?: string | null) {
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+    const where = { ...(companyId ? { companyId } : {}), status: "PAID" as const, paidAt: { gte: dayStart } };
+
+    const orders = await this.prisma.order.findMany({ where, include: { items: true } });
+
+    const vendasHoje = orders.reduce((s, o) => s + Number(o.total), 0);
+    const pedidos = orders.length;
+    const ticketMedio = pedidos ? vendasHoje / pedidos : 0;
+
+    // Vendas por hora (00h–23h).
+    const porHora = Array.from({ length: 24 }, () => 0);
+    for (const o of orders) {
+      const h = o.paidAt ? new Date(o.paidAt).getHours() : 0;
+      porHora[h] += Number(o.total);
+    }
+
+    // Top produtos do dia por faturamento.
+    const tally = new Map<string, { description: string; qty: number; total: number }>();
+    for (const o of orders) {
+      for (const it of o.items) {
+        const key = it.productId ?? it.description;
+        const cur = tally.get(key) ?? { description: it.description, qty: 0, total: 0 };
+        cur.qty += Number(it.qty);
+        cur.total += Number(it.total);
+        tally.set(key, cur);
+      }
+    }
+    const topProdutos = [...tally.values()].sort((a, b) => b.total - a.total).slice(0, 5);
+
+    // Anti-fraude: descontos médios elevados + sangrias do dia.
+    const totalDesconto = orders.reduce((s, o) => s + Number(o.discount), 0);
+    const totalBruto = orders.reduce((s, o) => s + Number(o.subtotal), 0);
+    const descontoPct = totalBruto ? Math.round((totalDesconto / totalBruto) * 1000) / 10 : 0;
+    const sangrias = await this.prisma.cashEntry.count({
+      where: { type: "SANGRIA", createdAt: { gte: dayStart }, ...(companyId ? { session: { companyId } } : {}) }
+    });
+    const alertas: string[] = [];
+    if (descontoPct > 15) alertas.push(`Desconto medio do dia em ${descontoPct}% — acima do esperado`);
+    if (sangrias >= 3) alertas.push(`${sangrias} sangrias hoje — verifique o caixa`);
+
+    return {
+      vendasHoje: Math.round(vendasHoje),
+      pedidos,
+      ticketMedio: Math.round(ticketMedio * 100) / 100,
+      descontoPct,
+      sangrias,
+      porHora: porHora.map((v) => Math.round(v)),
+      topProdutos: topProdutos.map((p) => ({ ...p, total: Math.round(p.total) })),
+      alertas
+    };
+  }
+
   async cashflow(companyId?: string | null) {
     const entries = await this.prisma.financialEntry.findMany({ where: companyId ? { companyId } : {} });
     const labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];

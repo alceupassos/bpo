@@ -1,0 +1,433 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  Banknote,
+  CreditCard,
+  Minus,
+  Plus,
+  QrCode,
+  ScanLine,
+  Search,
+  Sparkles,
+  Trash2,
+  UserCheck,
+  Wallet
+} from "lucide-react";
+import clsx from "clsx";
+import type { Customer, Order, PixResult, Product } from "@/lib/api";
+import { formatBRL } from "@/lib/formatters";
+import { BarcodeScanner } from "@/components/pdv/barcode-scanner";
+import { PaymentDrawer } from "@/components/pdv/payment-drawer";
+import {
+  assistAction,
+  createOrderAction,
+  createPixAction,
+  identifyQrAction,
+  payOrderAction,
+  type CartLine
+} from "@/app/pdv/actions";
+
+type CartItem = { productId?: string; description: string; qty: number; unitPrice: number };
+
+type PaymentMethod = "DINHEIRO" | "CARTAO" | "PIX" | "CREDIARIO";
+
+const METHODS: { id: PaymentMethod; label: string; icon: typeof Banknote }[] = [
+  { id: "DINHEIRO", label: "Dinheiro", icon: Banknote },
+  { id: "PIX", label: "Pix", icon: QrCode },
+  { id: "CARTAO", label: "Cartão", icon: CreditCard },
+  { id: "CREDIARIO", label: "Crediário", icon: Wallet }
+];
+
+const inputClass =
+  "w-full rounded-2xl border border-border bg-surface px-4 py-3 text-text outline-none focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/20";
+
+type DrawerState = { order: Order; method: string; pix: PixResult | null; paid: boolean } | null;
+
+export function PdvTerminal({
+  products,
+  hasSession
+}: {
+  products: Product[];
+  customers: Customer[];
+  hasSession: boolean;
+}) {
+  const router = useRouter();
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [query, setQuery] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [method, setMethod] = useState<PaymentMethod>("DINHEIRO");
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [copilot, setCopilot] = useState("");
+  const [copilotBusy, setCopilotBusy] = useState(false);
+  const [qrToken, setQrToken] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [finalizing, setFinalizing] = useState(false);
+  const [drawer, setDrawer] = useState<DrawerState>(null);
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return products
+      .filter((p) => p.name.toLowerCase().includes(q) || (p.barcode ?? "").includes(q))
+      .slice(0, 8);
+  }, [products, query]);
+
+  const subtotal = cart.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+  const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
+
+  function addProduct(p: Product) {
+    setCart((prev) => {
+      const idx = prev.findIndex((i) => i.productId === p.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], qty: next[idx].qty + 1 };
+        return next;
+      }
+      return [...prev, { productId: p.id, description: p.name, qty: 1, unitPrice: Number(p.price) }];
+    });
+    setQuery("");
+  }
+
+  function addByBarcode(code: string) {
+    setScannerOpen(false);
+    const p = products.find((x) => x.barcode && x.barcode === code);
+    if (p) {
+      addProduct(p);
+      setNotice(null);
+    } else {
+      setNotice(`Código ${code} não encontrado no catálogo.`);
+    }
+  }
+
+  function updateQty(idx: number, delta: number) {
+    setCart((prev) => {
+      const next = [...prev];
+      const qty = next[idx].qty + delta;
+      if (qty <= 0) return next.filter((_, i) => i !== idx);
+      next[idx] = { ...next[idx], qty };
+      return next;
+    });
+  }
+
+  function removeLine(idx: number) {
+    setCart((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  async function runCopilot() {
+    if (!copilot.trim()) return;
+    setCopilotBusy(true);
+    const res = await assistAction(copilot);
+    setCopilotBusy(false);
+    if (res?.items?.length) {
+      setCart((prev) => {
+        const next = [...prev];
+        for (const it of res.items) {
+          const idx = next.findIndex((i) => i.productId === it.productId);
+          if (idx >= 0) next[idx] = { ...next[idx], qty: next[idx].qty + it.qty };
+          else next.push({ productId: it.productId, description: it.description, qty: it.qty, unitPrice: it.unitPrice });
+        }
+        return next;
+      });
+      setCopilot("");
+      setNotice(null);
+    } else {
+      setNotice("Copiloto não encontrou itens para esse pedido.");
+    }
+  }
+
+  async function identify() {
+    if (!qrToken.trim()) return;
+    const res = await identifyQrAction(qrToken);
+    if (res?.matched && res.customer) {
+      setCustomer(res.customer);
+      setQrToken("");
+      setNotice(null);
+    } else {
+      setNotice("Cliente não identificado pelo QR informado.");
+    }
+  }
+
+  async function finalize() {
+    if (!cart.length) return;
+    setFinalizing(true);
+    const items: CartLine[] = cart.map((i) => ({
+      productId: i.productId,
+      description: i.description,
+      qty: i.qty,
+      unitPrice: i.unitPrice
+    }));
+    const order = await createOrderAction({ items, discount, customerId: customer?.id });
+    if (!order) {
+      setFinalizing(false);
+      setNotice("Não foi possível criar a venda (API indisponível).");
+      return;
+    }
+
+    if (method === "PIX") {
+      const pix = await createPixAction(order.id, customer?.email ?? undefined);
+      setDrawer({ order, method, pix, paid: false });
+    } else {
+      const paid = await payOrderAction(order.id, method);
+      setDrawer({ order: paid ?? order, method, pix: null, paid: !(paid?.needsApproval) });
+    }
+    setFinalizing(false);
+  }
+
+  function resetSale() {
+    setCart([]);
+    setCustomer(null);
+    setDiscount(0);
+    setMethod("DINHEIRO");
+    setDrawer(null);
+    router.refresh();
+  }
+
+  return (
+    <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+      {/* Coluna esquerda — busca + carrinho */}
+      <div className="space-y-5">
+        {!hasSession && (
+          <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-xs font-medium text-amber-500">
+            Nenhum caixa aberto. A venda será registrada, mas para lançar no caixa{" "}
+            <Link href="/caixa" className="underline">
+              abra uma sessão
+            </Link>
+            .
+          </div>
+        )}
+
+        <div className="rounded-[28px] border border-border bg-surface p-5 soft-glow">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-faint" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar produto por nome ou código…"
+                className={clsx(inputClass, "pl-10")}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setScannerOpen((v) => !v)}
+              className="flex items-center gap-2 rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm font-semibold text-text hover:bg-surface"
+            >
+              <ScanLine className="h-4 w-4 text-lime" /> Escanear
+            </button>
+          </div>
+
+          {matches.length > 0 && (
+            <div className="mt-3 flex flex-col gap-1.5">
+              {matches.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => addProduct(p)}
+                  className="flex items-center justify-between rounded-2xl border border-border bg-surface-muted px-4 py-2.5 text-left text-sm text-text hover:border-lime/40"
+                >
+                  <span className="truncate">
+                    {p.name}
+                    {p.barcode ? <span className="ml-2 text-xs text-text-faint">#{p.barcode}</span> : null}
+                  </span>
+                  <span className="font-semibold tabular-nums">{formatBRL(Number(p.price))}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {scannerOpen && (
+            <div className="mt-4">
+              <BarcodeScanner onDetected={addByBarcode} onClose={() => setScannerOpen(false)} />
+            </div>
+          )}
+        </div>
+
+        {/* Carrinho */}
+        <div className="rounded-[28px] border border-border bg-surface p-5 soft-glow">
+          <h3 className="mb-4 text-[1.2rem] font-semibold text-text">Carrinho</h3>
+          {cart.length === 0 ? (
+            <p className="py-8 text-center text-sm text-text-faint">
+              Adicione produtos pela busca, leitor de código ou copiloto de IA.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {cart.map((item, idx) => (
+                <div
+                  key={`${item.productId ?? item.description}-${idx}`}
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-surface-muted px-3 py-2.5"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-text">{item.description}</p>
+                    <p className="text-xs text-text-faint">{formatBRL(item.unitPrice)} / un</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => updateQty(idx, -1)}
+                      aria-label="Diminuir"
+                      className="grid h-7 w-7 place-items-center rounded-lg bg-surface text-text-soft hover:text-text"
+                    >
+                      <Minus className="h-3.5 w-3.5" />
+                    </button>
+                    <span className="w-7 text-center text-sm font-semibold tabular-nums text-text">{item.qty}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateQty(idx, 1)}
+                      aria-label="Aumentar"
+                      className="grid h-7 w-7 place-items-center rounded-lg bg-surface text-text-soft hover:text-text"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <span className="w-24 text-right text-sm font-semibold tabular-nums text-text">
+                    {formatBRL(item.qty * item.unitPrice)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeLine(idx)}
+                    aria-label="Remover"
+                    className="grid h-7 w-7 place-items-center rounded-lg text-text-faint hover:text-danger"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Copiloto de vendas */}
+        <div className="rounded-[28px] border border-lime/25 bg-lime/5 p-5">
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-text">
+            <Sparkles className="h-4 w-4 text-lime" /> Copiloto de vendas (IA)
+          </h3>
+          <div className="flex gap-2">
+            <input
+              value={copilot}
+              onChange={(e) => setCopilot(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && runCopilot()}
+              placeholder='Ex.: "2 cafés e um pão de queijo"'
+              className={inputClass}
+            />
+            <button
+              type="button"
+              onClick={runCopilot}
+              disabled={copilotBusy}
+              className="rounded-2xl bg-lime px-5 py-3 text-sm font-semibold text-ink hover:bg-lime-strong disabled:opacity-60"
+            >
+              {copilotBusy ? "…" : "Adicionar"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Coluna direita — cliente, pagamento, total */}
+      <div className="space-y-5">
+        {notice && (
+          <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-xs font-medium text-amber-500">
+            {notice}
+          </div>
+        )}
+
+        {/* Cliente */}
+        <div className="rounded-[28px] border border-border bg-surface p-5 soft-glow">
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-text">
+            <UserCheck className="h-4 w-4 text-lime" /> Cliente
+          </h3>
+          {customer ? (
+            <div className="flex items-center justify-between rounded-2xl border border-lime/30 bg-lime/10 px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-text">{customer.name}</p>
+                <p className="text-xs text-text-faint">
+                  Limite {formatBRL(customer.creditLimit)} · Saldo {formatBRL(customer.balance)}
+                </p>
+              </div>
+              <button type="button" onClick={() => setCustomer(null)} className="text-xs text-text-soft underline">
+                trocar
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                value={qrToken}
+                onChange={(e) => setQrToken(e.target.value)}
+                placeholder="QR / token do cliente"
+                className={inputClass}
+              />
+              <button
+                type="button"
+                onClick={identify}
+                className="rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm font-semibold text-text hover:bg-surface"
+              >
+                Identificar
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Pagamento */}
+        <div className="rounded-[28px] border border-border bg-surface p-5 soft-glow">
+          <h3 className="mb-3 text-sm font-bold text-text">Forma de pagamento</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {METHODS.map((m) => {
+              const Icon = m.icon;
+              const active = method === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setMethod(m.id)}
+                  className={clsx(
+                    "flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-colors",
+                    active
+                      ? "border-lime bg-lime text-ink"
+                      : "border-border bg-surface-muted text-text-soft hover:text-text"
+                  )}
+                >
+                  <Icon className="h-4 w-4" /> {m.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Totais */}
+        <div className="rounded-[28px] border border-border bg-surface p-5 soft-glow">
+          <div className="flex items-center justify-between text-sm text-text-soft">
+            <span>Subtotal</span>
+            <span className="tabular-nums">{formatBRL(subtotal)}</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-3 text-sm text-text-soft">
+            <span>Desconto</span>
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={discount || ""}
+              onChange={(e) => setDiscount(Math.max(0, Number(e.target.value)))}
+              className="w-28 rounded-xl border border-border bg-surface px-3 py-1.5 text-right text-text outline-none focus-visible:border-ink"
+            />
+          </div>
+          <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+            <span className="text-base font-bold text-text">Total</span>
+            <span className="text-2xl font-extrabold tabular-nums text-text">{formatBRL(total)}</span>
+          </div>
+          <button
+            type="button"
+            onClick={finalize}
+            disabled={finalizing || cart.length === 0}
+            className="mt-5 w-full rounded-2xl bg-lime px-4 py-4 text-base font-bold text-ink transition-colors hover:bg-lime-strong disabled:opacity-50"
+          >
+            {finalizing ? "Processando…" : `Finalizar venda · ${formatBRL(total)}`}
+          </button>
+        </div>
+      </div>
+
+      <PaymentDrawer state={drawer} onClose={() => setDrawer(null)} onPaid={resetSale} />
+    </div>
+  );
+}

@@ -448,6 +448,93 @@ export const getAnomalies = () => apiGet<AnomalyResult>("/ai/anomalies");
 export const getAlerts = () => apiGet<AlertsResult>("/ai/alerts");
 export const getMonthlySummary = () => apiGet<MonthlySummary>("/ai/monthly-summary");
 
+// ---- PDV (Ponto de Venda) ----
+
+export interface OrderItem {
+  id?: string;
+  orderId?: string;
+  productId: string | null;
+  description: string;
+  qty: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface Order {
+  id: string;
+  companyId: string;
+  sessionId: string | null;
+  customerId: string | null;
+  number: number;
+  status: string;
+  subtotal: number;
+  discount: number;
+  total: number;
+  paymentMethod: string | null;
+  mpPaymentId: string | null;
+  createdAt: string;
+  paidAt: string | null;
+  items: OrderItem[];
+  needsApproval?: boolean;
+  alreadyPaid?: boolean;
+}
+
+export interface PdvSummary {
+  vendasHoje: number;
+  pedidos: number;
+  ticketMedio: number;
+  descontoPct: number;
+  sangrias: number;
+  porHora: number[];
+  topProdutos: { description: string; qty: number; total: number }[];
+  alertas: string[];
+}
+
+export interface PixResult {
+  provider: "MERCADOPAGO" | "MANUAL";
+  status: string;
+  mpPaymentId: string | null;
+  qrCode: string | null;
+  qrCodeBase64: string | null;
+  ticketUrl: string | null;
+  message?: string;
+}
+
+export interface SalesAssistResult {
+  items: { productId: string; description: string; qty: number; unitPrice: number }[];
+  source: string;
+}
+
+export interface IdentifyResult {
+  matched: boolean;
+  method: string;
+  distance?: number | null;
+  customer: Customer | null;
+}
+
+export const getOrders = () => apiGet<Order[]>("/sales");
+export const getPdvSummary = () => apiGet<PdvSummary>("/dashboard/pdv");
+export const createOrder = (body: {
+  customerId?: string;
+  discount?: number;
+  items: { productId?: string; qty: number; description?: string; unitPrice?: number }[];
+}) => apiPost<Order>("/sales", body);
+export const payOrder = (id: string, body: { paymentMethod: string; mpPaymentId?: string }) =>
+  apiPost<Order>(`/sales/${id}/pay`, body);
+export const cancelOrder = (id: string) => apiPost<Order>(`/sales/${id}/cancel`);
+export const salesAssist = (text: string) => apiPost<SalesAssistResult>("/sales/assist", { text });
+export const createPix = (orderId: string, payerEmail?: string) =>
+  apiPost<PixResult>("/payments/pix", { orderId, payerEmail });
+export const getPaymentStatus = (mpPaymentId: string) =>
+  apiGet<{ status: string; provider: string }>(`/payments/status/${mpPaymentId}`);
+export const identifyCustomer = (body: { method: "FACE" | "WEBAUTHN" | "QR"; qrToken?: string }) =>
+  apiPost<IdentifyResult>("/customers/identify", body);
+export const importProductsOcr = (file: File) =>
+  apiUpload<{ imported: number; source: string; needsReview: boolean; supplier: string | null }>(
+    "/products/import-ocr",
+    file
+  );
+
 /** POST autenticado (JSON) — usado por server actions. */
 export async function apiPost<T>(path: string, body?: unknown): Promise<T | null> {
   const res = await apiFetch(path, {

@@ -20,7 +20,8 @@ import {
   Sparkles,
   Building2,
   ShieldCheck,
-  ScrollText
+  ScrollText,
+  ShoppingCart
 } from "lucide-react";
 
 const icons = {
@@ -42,7 +43,8 @@ const icons = {
   "users-round": UsersRound,
   sparkles: Sparkles,
   "shield-check": ShieldCheck,
-  "scroll-text": ScrollText
+  "scroll-text": ScrollText,
+  "shopping-cart": ShoppingCart
 };
 
 export function IconResolver({

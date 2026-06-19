@@ -33,6 +33,7 @@ export const navGroups = [
   {
     title: "Operações",
     items: [
+      { href: "/pdv", label: "PDV", icon: "shopping-cart" },
       { href: "/notas", label: "Notas (OCR)", icon: "receipt-text" },
       { href: "/fornecedores", label: "Fornecedores", icon: "briefcase" },
       { href: "/produtos", label: "Produtos", icon: "package" },

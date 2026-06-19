@@ -3,6 +3,18 @@ import type { NextRequest } from "next/server";
 
 const AUTH_COOKIE = "bpo_token";
 
+/**
+ * Origem pública real da requisição. Atrás do nginx/Cloudflare, `req.url` traz o
+ * host de bind interno (`127.0.0.1:5001`), então os redirects precisam ser
+ * montados a partir dos headers de proxy (`x-forwarded-host`/`host` +
+ * `x-forwarded-proto`). Em acesso direto (dev), cai no host real do request.
+ */
+function redirectUrl(req: NextRequest, path: string): URL {
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  const proto = req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "");
+  return host ? new URL(path, `${proto}://${host}`) : new URL(path, req.url);
+}
+
 function decodeJwtPayload(token: string): { role: string; companyId: string | null } | null {
   try {
     const parts = token.split(".");
@@ -32,15 +44,13 @@ export function middleware(req: NextRequest) {
   // Verifica cookie de sessão
   const token = req.cookies.get(AUTH_COOKIE)?.value;
   if (!token) {
-    const loginUrl = new URL("/login", req.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(redirectUrl(req, "/login"));
   }
 
   // Decodifica papel do usuário para regras de acesso
   const payload = decodeJwtPayload(token);
   if (!payload) {
-    const loginUrl = new URL("/login", req.url);
-    const response = NextResponse.redirect(loginUrl);
+    const response = NextResponse.redirect(redirectUrl(req, "/login"));
     response.cookies.delete(AUTH_COOKIE);
     return response;
   }
@@ -50,14 +60,12 @@ export function middleware(req: NextRequest) {
   if (isClient) {
     // Clientes só podem acessar o painel do cliente
     if (pathname !== "/painel-cliente") {
-      const target = new URL("/painel-cliente", req.url);
-      return NextResponse.redirect(target);
+      return NextResponse.redirect(redirectUrl(req, "/painel-cliente"));
     }
   } else {
     // Operadores não devem acessar o painel do cliente
     if (pathname === "/painel-cliente") {
-      const target = new URL("/", req.url);
-      return NextResponse.redirect(target);
+      return NextResponse.redirect(redirectUrl(req, "/"));
     }
   }
 

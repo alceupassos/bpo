@@ -15,6 +15,14 @@ type ProductPayload = {
   minStock?: number;
   supplierId?: string;
   imageUrl?: string;
+  ncm?: string;
+  cfop?: string;
+  csosn?: string;
+  cst?: string;
+  origem?: "NACIONAL" | "IMPORTADO";
+  icmsAliquota?: number;
+  pisAliquota?: number;
+  cofinsAliquota?: number;
 };
 
 @Injectable()
@@ -55,7 +63,15 @@ export class ProductsService {
         minStock: payload.minStock ?? 0,
         supplierId: payload.supplierId,
         category: payload.category,
-        imageUrl: payload.imageUrl
+        imageUrl: payload.imageUrl,
+        ncm: payload.ncm,
+        ...(payload.cfop !== undefined ? { cfop: payload.cfop } : {}),
+        ...(payload.csosn !== undefined ? { csosn: payload.csosn } : {}),
+        cst: payload.cst,
+        ...(payload.origem !== undefined ? { origem: payload.origem } : {}),
+        ...(payload.icmsAliquota !== undefined ? { icmsAliquota: payload.icmsAliquota } : {}),
+        ...(payload.pisAliquota !== undefined ? { pisAliquota: payload.pisAliquota } : {}),
+        ...(payload.cofinsAliquota !== undefined ? { cofinsAliquota: payload.cofinsAliquota } : {})
       }
     });
   }
@@ -71,7 +87,15 @@ export class ProductsService {
         ...(payload.cost !== undefined ? { cost: payload.cost } : {}),
         ...(payload.minStock !== undefined ? { minStock: payload.minStock } : {}),
         ...(payload.category !== undefined ? { category: payload.category } : {}),
-        ...(payload.imageUrl !== undefined ? { imageUrl: payload.imageUrl } : {})
+        ...(payload.imageUrl !== undefined ? { imageUrl: payload.imageUrl } : {}),
+        ...(payload.ncm !== undefined ? { ncm: payload.ncm } : {}),
+        ...(payload.cfop !== undefined ? { cfop: payload.cfop } : {}),
+        ...(payload.csosn !== undefined ? { csosn: payload.csosn } : {}),
+        ...(payload.cst !== undefined ? { cst: payload.cst } : {}),
+        ...(payload.origem !== undefined ? { origem: payload.origem } : {}),
+        ...(payload.icmsAliquota !== undefined ? { icmsAliquota: payload.icmsAliquota } : {}),
+        ...(payload.pisAliquota !== undefined ? { pisAliquota: payload.pisAliquota } : {}),
+        ...(payload.cofinsAliquota !== undefined ? { cofinsAliquota: payload.cofinsAliquota } : {})
       }
     });
   }

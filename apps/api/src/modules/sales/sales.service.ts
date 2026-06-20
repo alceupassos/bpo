@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { LlmService } from "../ai/llm.service";
+import { FiscalEmissionService } from "../fiscal-emission/fiscal-emission.service";
 
 export type SaleItemInput = { productId?: string; qty: number; description?: string; unitPrice?: number };
 
@@ -30,7 +31,8 @@ export class SalesService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly llm: LlmService
+    private readonly llm: LlmService,
+    private readonly fiscal: FiscalEmissionService
   ) {}
 
   list(companyId?: string | null) {
@@ -220,7 +222,14 @@ export class SalesService {
       return paidOrder;
     });
 
-    return updated;
+    // Emissão fiscal (NFC-e) best-effort — nunca bloqueia a venda.
+    try {
+      await this.fiscal.emit(order.id, companyId);
+    } catch (error) {
+      this.logger.warn(`Emissao NFC-e falhou (venda mantida): ${String(error)}`);
+    }
+
+    return this.prisma.order.findUnique({ where: { id: order.id }, include: { items: true } }) as Promise<typeof updated>;
   }
 
   /** Usado pelo webhook do Mercado Pago para fechar a venda do Pix aprovado. */

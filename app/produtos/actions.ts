@@ -11,7 +11,10 @@ export async function createProduct(formData: FormData) {
     price: Number(formData.get("price") ?? 0),
     unit: String(formData.get("unit") ?? "UN") || "UN",
     category: String(formData.get("category") ?? "") || undefined,
-    barcode: String(formData.get("barcode") ?? "") || undefined
+    barcode: String(formData.get("barcode") ?? "") || undefined,
+    ncm: String(formData.get("ncm") ?? "") || undefined,
+    cfop: String(formData.get("cfop") ?? "") || undefined,
+    csosn: String(formData.get("csosn") ?? "") || undefined
   });
   revalidatePath("/produtos");
 }

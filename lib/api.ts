@@ -137,6 +137,11 @@ export interface Product {
   price: number;
   category: string | null;
   imageUrl: string | null;
+  ncm?: string | null;
+  cfop?: string | null;
+  csosn?: string | null;
+  origem?: string | null;
+  icmsAliquota?: number;
   createdAt: string;
 }
 
@@ -475,6 +480,10 @@ export interface Order {
   mpPaymentId: string | null;
   createdAt: string;
   paidAt: string | null;
+  nfceStatus?: string;
+  nfceNumber?: string | null;
+  nfceAccessKey?: string | null;
+  danfeUrl?: string | null;
   items: OrderItem[];
   needsApproval?: boolean;
   alreadyPaid?: boolean;
@@ -541,6 +550,14 @@ export const fetchProductPhoto = (id: string) =>
   apiPost<{ ok: boolean; imageUrl: string | null }>(`/products/${id}/fetch-photo`);
 export const autoProductPhotos = () =>
   apiPost<{ ok: boolean; filled: number; total: number }>("/products/photos/auto");
+
+// ---- Fiscal (NFC-e / cupom) ----
+export const emitNfce = (orderId: string) =>
+  apiPost<{ status: string; accessKey: string | null; number: string | null; danfeUrl: string | null }>(
+    `/fiscal/emit/${orderId}`
+  );
+export const getCupom = (orderId: string) => apiGet<{ html: string }>(`/fiscal/cupom/${orderId}`);
+export const cancelNfce = (orderId: string) => apiPost<{ status: string }>(`/fiscal/cancel/${orderId}`);
 
 /** POST autenticado (JSON) — usado por server actions. */
 export async function apiPost<T>(path: string, body?: unknown): Promise<T | null> {

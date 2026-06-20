@@ -46,6 +46,38 @@ class CreateProductDto {
   @IsOptional()
   @IsString()
   imageUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  ncm?: string;
+
+  @IsOptional()
+  @IsString()
+  cfop?: string;
+
+  @IsOptional()
+  @IsString()
+  csosn?: string;
+
+  @IsOptional()
+  @IsString()
+  cst?: string;
+
+  @IsOptional()
+  @IsIn(["NACIONAL", "IMPORTADO"])
+  origem?: "NACIONAL" | "IMPORTADO";
+
+  @IsOptional()
+  @IsNumber()
+  icmsAliquota?: number;
+
+  @IsOptional()
+  @IsNumber()
+  pisAliquota?: number;
+
+  @IsOptional()
+  @IsNumber()
+  cofinsAliquota?: number;
 }
 
 class StockMoveDto {

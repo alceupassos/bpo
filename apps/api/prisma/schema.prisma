@@ -149,13 +149,38 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum FiscalOrigem {
+  NACIONAL
+  IMPORTADO
+}
+
+enum RegimeTributario {
+  SIMPLES
+  MEI
+  PRESUMIDO
+  REAL
+}
+
+enum NfceStatus {
+  NONE
+  PENDING
+  AUTHORIZED
+  DENIED
+  SIMULATED
+  CANCELLED
+}
+
 model Company {
-  id        String   @id @default(cuid())
-  legalName String
-  tradeName String
-  cnpj      String   @unique
-  taxRegime String   @default("SIMPLES_NACIONAL")
-  createdAt DateTime @default(now())
+  id                String           @id @default(cuid())
+  legalName         String
+  tradeName         String
+  cnpj              String           @unique
+  taxRegime         String           @default("SIMPLES_NACIONAL")
+  inscricaoEstadual String?
+  cnae              String?
+  regimeTributario  RegimeTributario @default(SIMPLES)
+  anexoSimples      Int              @default(1) // 1..5 (Simples Nacional)
+  createdAt         DateTime         @default(now())
 }
 
 model User {
@@ -269,6 +294,15 @@ model Product {
   supplierId   String?
   category     String?
   imageUrl     String?  // foto do produto: URL da internet ou data URL (foto batida no PDV)
+  // Regras fiscais (para emissão de NFC-e/NF-e). Defaults sensatos para varejo Simples.
+  ncm            String?
+  cfop           String?       @default("5102")
+  csosn          String?       @default("102")
+  cst            String?
+  origem         FiscalOrigem  @default(NACIONAL)
+  icmsAliquota   Decimal       @db.Decimal(6, 4) @default(0)
+  pisAliquota    Decimal       @db.Decimal(6, 4) @default(0)
+  cofinsAliquota Decimal       @db.Decimal(6, 4) @default(0)
   sourceNoteId String?
   createdAt    DateTime @default(now())
 
@@ -503,6 +537,11 @@ model Order {
   createdBy     String      @default("")
   createdAt     DateTime    @default(now())
   paidAt        DateTime?
+  // Emissão fiscal do cupom (NFC-e)
+  nfceStatus    NfceStatus  @default(NONE)
+  nfceNumber    String?
+  nfceAccessKey String?
+  danfeUrl      String?
   items         OrderItem[]
 
   @@index([companyId])

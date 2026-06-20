@@ -20,6 +20,7 @@ import { CustomersModule } from "./customers/customers.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { DocumentsModule } from "./documents/documents.module";
 import { FinancialEntriesModule } from "./financial-entries/financial-entries.module";
+import { FiscalEmissionModule } from "./fiscal-emission/fiscal-emission.module";
 import { FiscalNotesModule } from "./fiscal-notes/fiscal-notes.module";
 import { PaymentsModule } from "./payments/payments.module";
 import { PayrollModule } from "./payroll/payroll.module";
@@ -53,6 +54,7 @@ import { UsersModule } from "./users/users.module";
     ProductsModule,
     SalesModule,
     PaymentsModule,
+    FiscalEmissionModule,
     CashModule,
     FiscalNotesModule,
     ChatModule,

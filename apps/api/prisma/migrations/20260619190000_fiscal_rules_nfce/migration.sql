@@ -1,0 +1,26 @@
+-- CreateEnum
+CREATE TYPE "FiscalOrigem" AS ENUM ('NACIONAL', 'IMPORTADO');
+CREATE TYPE "RegimeTributario" AS ENUM ('SIMPLES', 'MEI', 'PRESUMIDO', 'REAL');
+CREATE TYPE "NfceStatus" AS ENUM ('NONE', 'PENDING', 'AUTHORIZED', 'DENIED', 'SIMULATED', 'CANCELLED');
+
+-- AlterTable Company
+ALTER TABLE "Company" ADD COLUMN "inscricaoEstadual" TEXT;
+ALTER TABLE "Company" ADD COLUMN "cnae" TEXT;
+ALTER TABLE "Company" ADD COLUMN "regimeTributario" "RegimeTributario" NOT NULL DEFAULT 'SIMPLES';
+ALTER TABLE "Company" ADD COLUMN "anexoSimples" INTEGER NOT NULL DEFAULT 1;
+
+-- AlterTable Product
+ALTER TABLE "Product" ADD COLUMN "ncm" TEXT;
+ALTER TABLE "Product" ADD COLUMN "cfop" TEXT DEFAULT '5102';
+ALTER TABLE "Product" ADD COLUMN "csosn" TEXT DEFAULT '102';
+ALTER TABLE "Product" ADD COLUMN "cst" TEXT;
+ALTER TABLE "Product" ADD COLUMN "origem" "FiscalOrigem" NOT NULL DEFAULT 'NACIONAL';
+ALTER TABLE "Product" ADD COLUMN "icmsAliquota" DECIMAL(6,4) NOT NULL DEFAULT 0;
+ALTER TABLE "Product" ADD COLUMN "pisAliquota" DECIMAL(6,4) NOT NULL DEFAULT 0;
+ALTER TABLE "Product" ADD COLUMN "cofinsAliquota" DECIMAL(6,4) NOT NULL DEFAULT 0;
+
+-- AlterTable Order
+ALTER TABLE "Order" ADD COLUMN "nfceStatus" "NfceStatus" NOT NULL DEFAULT 'NONE';
+ALTER TABLE "Order" ADD COLUMN "nfceNumber" TEXT;
+ALTER TABLE "Order" ADD COLUMN "nfceAccessKey" TEXT;
+ALTER TABLE "Order" ADD COLUMN "danfeUrl" TEXT;

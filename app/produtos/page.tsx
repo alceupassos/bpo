@@ -11,7 +11,7 @@ export default async function ProdutosPage() {
   const rows = products.map((p) => ({
     produto: p.name,
     codigo: p.barcode ?? "-",
-    unidade: p.unit,
+    fiscal: `${p.ncm ?? "s/ NCM"} · CFOP ${p.cfop ?? "-"}`,
     categoria: p.category ?? "-",
     preco: formatBRL(p.price)
   }));
@@ -29,7 +29,7 @@ export default async function ProdutosPage() {
             columns={[
               { key: "produto", label: "Produto" },
               { key: "codigo", label: "Codigo" },
-              { key: "unidade", label: "Unidade" },
+              { key: "fiscal", label: "Fiscal (NCM/CFOP)" },
               { key: "categoria", label: "Categoria" },
               { key: "preco", label: "Preco" }
             ]}
@@ -91,6 +91,26 @@ export default async function ProdutosPage() {
                 placeholder="Ex.: Padaria"
                 className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-text outline-none focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/20"
               />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label htmlFor="ncm" className="mb-1 block text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                  NCM
+                </label>
+                <input id="ncm" name="ncm" autoComplete="off" placeholder="00000000" className="w-full rounded-2xl border border-border bg-surface px-3 py-3 text-text outline-none focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/20" />
+              </div>
+              <div>
+                <label htmlFor="cfop" className="mb-1 block text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                  CFOP
+                </label>
+                <input id="cfop" name="cfop" autoComplete="off" defaultValue="5102" className="w-full rounded-2xl border border-border bg-surface px-3 py-3 text-text outline-none focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/20" />
+              </div>
+              <div>
+                <label htmlFor="csosn" className="mb-1 block text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                  CSOSN
+                </label>
+                <input id="csosn" name="csosn" autoComplete="off" defaultValue="102" className="w-full rounded-2xl border border-border bg-surface px-3 py-3 text-text outline-none focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/20" />
+              </div>
             </div>
             <button
               type="submit"

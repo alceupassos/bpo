@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, Copy, Loader2, QrCode, X } from "lucide-react";
+import { CheckCircle2, Copy, Loader2, Printer, QrCode, X } from "lucide-react";
 import type { Order, PixResult } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
-import { payOrderAction, paymentStatusAction } from "@/app/pdv/actions";
+import { cupomHtmlAction, payOrderAction, paymentStatusAction } from "@/app/pdv/actions";
 
 type DrawerState = {
   order: Order;
@@ -67,6 +67,19 @@ export function PaymentDrawer({
     }
   }
 
+  async function openCupom() {
+    if (!state) return;
+    const html = await cupomHtmlAction(state.order.id);
+    if (!html) return;
+    const win = window.open("", "_blank", "width=380,height=640");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      win.print();
+    }
+  }
+
   return (
     <AnimatePresence>
       {state && (
@@ -104,12 +117,19 @@ export function PaymentDrawer({
                 <CheckCircle2 className="h-14 w-14 text-lime" />
                 <p className="text-lg font-bold text-text">Pagamento confirmado</p>
                 <p className="text-sm text-text-soft">
-                  Lançamento financeiro, caixa e estoque atualizados automaticamente.
+                  Lançamento financeiro, caixa, estoque e NFC-e gerados automaticamente.
                 </p>
                 <button
                   type="button"
+                  onClick={openCupom}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-3 font-semibold text-text hover:bg-surface-muted"
+                >
+                  <Printer className="h-4 w-4" /> Imprimir cupom (NFC-e)
+                </button>
+                <button
+                  type="button"
                   onClick={onPaid}
-                  className="mt-2 w-full rounded-2xl bg-lime px-4 py-3 font-semibold text-ink hover:bg-lime-strong"
+                  className="w-full rounded-2xl bg-lime px-4 py-3 font-semibold text-ink hover:bg-lime-strong"
                 >
                   Nova venda
                 </button>

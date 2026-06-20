@@ -6,7 +6,9 @@ import {
   cancelOrder,
   createOrder,
   createPix,
+  emitNfce,
   fetchProductPhoto,
+  getCupom,
   getPaymentStatus,
   identifyCustomer,
   importProductsOcr,
@@ -64,6 +66,17 @@ export async function assistAction(text: string): Promise<SalesAssistResult | nu
 export async function identifyQrAction(qrToken: string): Promise<IdentifyResult | null> {
   if (!qrToken.trim()) return null;
   return identifyCustomer({ method: "QR", qrToken });
+}
+
+/** Emite a NFC-e (cupom) da venda — real (Focus) ou simulada. */
+export async function emitNfceAction(orderId: string) {
+  return emitNfce(orderId);
+}
+
+/** Devolve o HTML do cupom para impressão/visualização. */
+export async function cupomHtmlAction(orderId: string): Promise<string | null> {
+  const res = await getCupom(orderId);
+  return res?.html ?? null;
 }
 
 /** Salva a foto batida na câmera (data URL JPEG já reduzido no cliente). */

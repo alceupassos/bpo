@@ -21,7 +21,8 @@ import {
   Building2,
   ShieldCheck,
   ScrollText,
-  ShoppingCart
+  ShoppingCart,
+  Landmark
 } from "lucide-react";
 
 const icons = {
@@ -44,7 +45,8 @@ const icons = {
   sparkles: Sparkles,
   "shield-check": ShieldCheck,
   "scroll-text": ScrollText,
-  "shopping-cart": ShoppingCart
+  "shopping-cart": ShoppingCart,
+  landmark: Landmark
 };
 
 export function IconResolver({

@@ -560,6 +560,23 @@ export const importProductsOcr = (file: File) =>
   );
 export const setProductImage = (id: string, imageUrl: string) =>
   apiPatch<Product>(`/products/${id}`, { imageUrl });
+
+// ---- Tributário / Agente preditivo (Angra IA) ----
+export interface TaxInsights {
+  anexo: number;
+  rbt12: number;
+  aliquotaEfetiva: number;
+  dasPrevisto: number;
+  faturamento12m: number;
+  percentualTeto: number;
+  teto: number;
+  divergencias: { tipo: string; severidade: string; descricao: string }[];
+  alertas: string[];
+  recomendacoes: string[];
+}
+export const getTaxInsights = () => apiGet<TaxInsights>("/tax-ai/insights");
+export const classifyAllProducts = () =>
+  apiPost<{ ok: boolean; classificados: number; aplicados: number }>("/tax-ai/classify-all");
 export const fetchProductPhoto = (id: string) =>
   apiPost<{ ok: boolean; imageUrl: string | null }>(`/products/${id}/fetch-photo`);
 export const autoProductPhotos = () =>

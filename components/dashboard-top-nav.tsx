@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Bell, LogOut, Search, Menu } from "lucide-react";
+import { HeaderClock } from "@/components/header-clock";
 import { logoutAction } from "@/app/login/actions";
 
 interface DashboardTopNavProps {
@@ -81,6 +82,9 @@ export function DashboardTopNav({ onMenuClick }: DashboardTopNavProps) {
             <span className="text-[9px] text-text-faint uppercase tracking-wider font-bold mt-0.5">{roleLabels[user.role] ?? user.role}</span>
           </div>
         )}
+
+        {/* Relógio discreto */}
+        <HeaderClock />
 
         {/* Notifications Button */}
         <button

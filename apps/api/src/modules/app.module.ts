@@ -28,6 +28,7 @@ import { PayrollModule } from "./payroll/payroll.module";
 import { ProductsModule } from "./products/products.module";
 import { SalesModule } from "./sales/sales.module";
 import { SuppliersModule } from "./suppliers/suppliers.module";
+import { TaxAiModule } from "./tax-ai/tax-ai.module";
 import { TaxObligationsModule } from "./tax-obligations/tax-obligations.module";
 import { UsersModule } from "./users/users.module";
 
@@ -62,6 +63,7 @@ import { UsersModule } from "./users/users.module";
     SuppliersModule,
     CustomersModule,
     TaxObligationsModule,
+    TaxAiModule,
     PayrollModule,
     CorporateModule,
     AccountingModule,

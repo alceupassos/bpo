@@ -162,6 +162,15 @@ export const activityRows: TableRow[] = [
 ];
 
 export const pageSummaries = {
+  "/tributos": {
+    title: "Tributário — Agente preditivo",
+    subtitle: "Apuração do Simples, classificação fiscal automática e malha fina com a Angra IA.",
+    metrics: [
+      { label: "DAS previsto", value: "R$ 0" },
+      { label: "Aliquota efetiva", value: "0%" },
+      { label: "Faturamento 12m", value: "R$ 0" }
+    ]
+  },
   "/pdv": {
     title: "PDV — Ponto de Venda",
     subtitle: "Frente de caixa moderna: carrinho, leitor por camera, IA e Pix em um clique.",

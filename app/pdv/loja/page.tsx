@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
 import { PdvTerminal } from "@/components/pdv/pdv-terminal";
+import { OracleWidget } from "@/components/oracle-widget";
 import { getCashCurrent, getCustomers, getProducts } from "@/lib/api";
 
 /**
@@ -37,6 +38,8 @@ export default async function PdvLojaPage() {
       <main className="mx-auto w-full max-w-[1500px] px-4 py-6 md:px-6">
         <PdvTerminal products={products ?? []} customers={customers ?? []} hasSession={Boolean(session)} />
       </main>
+
+      <OracleWidget />
     </div>
   );
 }

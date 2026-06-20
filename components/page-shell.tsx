@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import clsx from "clsx";
 import { IconResolver } from "@/components/icon-resolver";
+import { OracleWidget } from "@/components/oracle-widget";
 
 export function PageShell({
   title,
@@ -197,6 +198,9 @@ export function PageShell({
           </>
         )}
       </AnimatePresence>
+
+      {/* Oráculo Angra IA — assistente fixo, presente em todas as telas com PageShell */}
+      <OracleWidget />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -17,7 +17,7 @@ import {
   Wallet
 } from "lucide-react";
 import clsx from "clsx";
-import type { Customer, Order, PixResult, Product } from "@/lib/api";
+import type { Customer, GatewayInfo, Order, PaymentResult, Product } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
 import { BarcodeScanner } from "@/components/pdv/barcode-scanner";
 import { ProductGrid } from "@/components/pdv/product-grid";
@@ -25,7 +25,8 @@ import { PaymentDrawer } from "@/components/pdv/payment-drawer";
 import {
   assistAction,
   createOrderAction,
-  createPixAction,
+  createPaymentAction,
+  gatewaysAction,
   identifyQrAction,
   payOrderAction,
   type CartLine
@@ -45,7 +46,13 @@ const METHODS: { id: PaymentMethod; label: string; icon: typeof Banknote }[] = [
 const inputClass =
   "w-full rounded-2xl border border-border bg-surface px-4 py-3 text-text outline-none focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/20";
 
-type DrawerState = { order: Order; method: string; pix: PixResult | null; paid: boolean } | null;
+type DrawerState = {
+  order: Order;
+  provider: string;
+  method: string;
+  payment: PaymentResult | null;
+  paid: boolean;
+} | null;
 
 export function PdvTerminal({
   products,
@@ -67,6 +74,17 @@ export function PdvTerminal({
   const [notice, setNotice] = useState<string | null>(null);
   const [finalizing, setFinalizing] = useState(false);
   const [drawer, setDrawer] = useState<DrawerState>(null);
+  const [gateways, setGateways] = useState<GatewayInfo[]>([]);
+  const [provider, setProvider] = useState<string>("");
+
+  useEffect(() => {
+    gatewaysAction().then((g) => {
+      if (g && g.length) {
+        setGateways(g);
+        setProvider((g.find((x) => x.configured) ?? g[0]).id);
+      }
+    });
+  }, []);
 
   const subtotal = cart.reduce((s, i) => s + i.qty * i.unitPrice, 0);
   const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
@@ -159,12 +177,16 @@ export function PdvTerminal({
       return;
     }
 
-    if (method === "PIX") {
-      const pix = await createPixAction(order.id, customer?.email ?? undefined);
-      setDrawer({ order, method, pix, paid: false });
+    if (method === "PIX" || method === "CARTAO") {
+      const payment = await createPaymentAction(order.id, {
+        provider,
+        method,
+        payerEmail: customer?.email ?? undefined
+      });
+      setDrawer({ order, provider, method, payment, paid: false });
     } else {
       const paid = await payOrderAction(order.id, method);
-      setDrawer({ order: paid ?? order, method, pix: null, paid: !(paid?.needsApproval) });
+      setDrawer({ order: paid ?? order, provider, method, payment: null, paid: !paid?.needsApproval });
     }
     setFinalizing(false);
   }
@@ -376,6 +398,29 @@ export function PdvTerminal({
               );
             })}
           </div>
+
+          {(method === "PIX" || method === "CARTAO") && gateways.length > 0 && (
+            <div className="mt-3">
+              <label htmlFor="gateway" className="mb-1 block text-[11px] uppercase tracking-[0.14em] text-text-faint">
+                Adquirente
+              </label>
+              <select
+                id="gateway"
+                value={provider}
+                onChange={(e) => setProvider(e.target.value)}
+                className={inputClass}
+              >
+                {gateways
+                  .filter((g) => (method === "PIX" ? g.pix : g.cartao))
+                  .map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.label}
+                      {g.configured ? "" : " (simulado)"}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Totais */}

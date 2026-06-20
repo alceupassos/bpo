@@ -7,6 +7,7 @@ import { AccountingModule } from "./accounting/accounting.module";
 import { AiModule } from "./ai/ai.module";
 import { AiInsightsModule } from "./ai-insights/ai-insights.module";
 import { ApprovalModule } from "./approvals/approval.module";
+import { AssistantModule } from "./assistant/assistant.module";
 import { AuditModule } from "./audit/audit.module";
 import { AuthModule } from "./auth/auth.module";
 import { JwtAuthGuard } from "./auth/jwt-auth.guard";
@@ -64,7 +65,8 @@ import { UsersModule } from "./users/users.module";
     PayrollModule,
     CorporateModule,
     AccountingModule,
-    AiInsightsModule
+    AiInsightsModule,
+    AssistantModule
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

@@ -500,14 +500,23 @@ export interface PdvSummary {
   alertas: string[];
 }
 
-export interface PixResult {
-  provider: "MERCADOPAGO" | "MANUAL";
+export interface PaymentResult {
+  provider: string;
+  method: string; // PIX | CARTAO
   status: string;
-  mpPaymentId: string | null;
+  txId: string | null;
   qrCode: string | null;
   qrCodeBase64: string | null;
-  ticketUrl: string | null;
+  redirectUrl: string | null;
   message?: string;
+}
+
+export interface GatewayInfo {
+  id: string;
+  label: string;
+  pix: boolean;
+  cartao: boolean;
+  configured: boolean;
 }
 
 export interface SalesAssistResult {
@@ -533,10 +542,15 @@ export const payOrder = (id: string, body: { paymentMethod: string; mpPaymentId?
   apiPost<Order>(`/sales/${id}/pay`, body);
 export const cancelOrder = (id: string) => apiPost<Order>(`/sales/${id}/cancel`);
 export const salesAssist = (text: string) => apiPost<SalesAssistResult>("/sales/assist", { text });
-export const createPix = (orderId: string, payerEmail?: string) =>
-  apiPost<PixResult>("/payments/pix", { orderId, payerEmail });
-export const getPaymentStatus = (mpPaymentId: string) =>
-  apiGet<{ status: string; provider: string }>(`/payments/status/${mpPaymentId}`);
+export const getGateways = () => apiGet<GatewayInfo[]>("/payments/gateways");
+export const createPayment = (
+  orderId: string,
+  opts: { provider?: string; method?: "PIX" | "CARTAO"; payerEmail?: string }
+) => apiPost<PaymentResult>("/payments/create", { orderId, ...opts });
+export const getPaymentStatus = (txId: string, provider?: string) =>
+  apiGet<{ status: string; provider: string }>(
+    `/payments/status/${txId}${provider ? `?provider=${provider}` : ""}`
+  );
 export const identifyCustomer = (body: { method: "FACE" | "WEBAUTHN" | "QR"; qrToken?: string }) =>
   apiPost<IdentifyResult>("/customers/identify", body);
 export const importProductsOcr = (file: File) =>

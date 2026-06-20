@@ -232,15 +232,20 @@ export class SalesService {
     return this.prisma.order.findUnique({ where: { id: order.id }, include: { items: true } }) as Promise<typeof updated>;
   }
 
-  /** Usado pelo webhook do Mercado Pago para fechar a venda do Pix aprovado. */
-  async markPaidByMp(mpPaymentId: string) {
-    const order = await this.prisma.order.findUnique({ where: { mpPaymentId } });
+  /** Fecha a venda a partir do id de transação de qualquer gateway (webhook). */
+  async markPaidByGateway(txId: string, method = "PIX") {
+    const order = await this.prisma.order.findUnique({ where: { mpPaymentId: txId } });
     if (!order) {
-      this.logger.warn(`Webhook MP: pedido nao encontrado para mpPaymentId=${mpPaymentId}`);
+      this.logger.warn(`Webhook gateway: pedido nao encontrado para txId=${txId}`);
       return { ok: false };
     }
-    const paid = await this.pay(order.id, { paymentMethod: "PIX", mpPaymentId }, null, "mercadopago-webhook");
+    const paid = await this.pay(order.id, { paymentMethod: method, mpPaymentId: txId }, null, "gateway-webhook");
     return { ok: true, order: paid };
+  }
+
+  /** Compat: webhook do Mercado Pago. */
+  markPaidByMp(mpPaymentId: string) {
+    return this.markPaidByGateway(mpPaymentId, "PIX");
   }
 
   /** Estorno: reverte estoque do pedido pago e marca CANCELLED. */

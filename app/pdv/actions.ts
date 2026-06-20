@@ -5,10 +5,11 @@ import {
   autoProductPhotos,
   cancelOrder,
   createOrder,
-  createPix,
+  createPayment,
   emitNfce,
   fetchProductPhoto,
   getCupom,
+  getGateways,
   getPaymentStatus,
   identifyCustomer,
   importProductsOcr,
@@ -17,7 +18,7 @@ import {
   setProductImage,
   type IdentifyResult,
   type Order,
-  type PixResult,
+  type PaymentResult,
   type SalesAssistResult
 } from "@/lib/api";
 
@@ -47,13 +48,24 @@ export async function cancelOrderAction(id: string): Promise<Order | null> {
   return order;
 }
 
-/** Gera o Pix (QR dinâmico) via Mercado Pago, com fallback manual. */
-export async function createPixAction(orderId: string, payerEmail?: string): Promise<PixResult | null> {
-  return createPix(orderId, payerEmail);
+/** Lista os gateways disponíveis (e quais estão configurados). */
+export async function gatewaysAction() {
+  return getGateways();
 }
 
-export async function paymentStatusAction(mpPaymentId: string): Promise<{ status: string; provider: string } | null> {
-  return getPaymentStatus(mpPaymentId);
+/** Cria o pagamento no gateway escolhido (Pix/cartão), com fallback manual. */
+export async function createPaymentAction(
+  orderId: string,
+  opts: { provider?: string; method?: "PIX" | "CARTAO"; payerEmail?: string }
+): Promise<PaymentResult | null> {
+  return createPayment(orderId, opts);
+}
+
+export async function paymentStatusAction(
+  txId: string,
+  provider?: string
+): Promise<{ status: string; provider: string } | null> {
+  return getPaymentStatus(txId, provider);
 }
 
 /** Copiloto de vendas: linguagem natural → itens do catálogo. */

@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, Copy, Loader2, Printer, QrCode, X } from "lucide-react";
-import type { Order, PixResult } from "@/lib/api";
+import { CheckCircle2, Copy, CreditCard, ExternalLink, Loader2, Printer, QrCode, X } from "lucide-react";
+import type { Order, PaymentResult } from "@/lib/api";
 import { formatBRL } from "@/lib/formatters";
+import { ReceiptPrinter } from "@/components/pdv/receipt-printer";
 import { cupomHtmlAction, payOrderAction, paymentStatusAction } from "@/app/pdv/actions";
 
-type DrawerState = {
+export type DrawerState = {
   order: Order;
+  provider: string;
   method: string;
-  pix: PixResult | null;
+  payment: PaymentResult | null;
   paid: boolean;
 };
 
@@ -28,20 +30,21 @@ export function PaymentDrawer({
   const [copied, setCopied] = useState(false);
 
   const isPix = state?.method === "PIX";
-  const mpId = state?.pix?.mpPaymentId ?? null;
+  const txId = state?.payment?.txId ?? null;
+  const provider = state?.provider ?? "MERCADOPAGO";
 
   useEffect(() => {
     setPaid(state?.paid ?? false);
     setCopied(false);
   }, [state]);
 
-  // Polling do status do Pix no Mercado Pago (o webhook fecha a venda no servidor).
+  // Polling do status no gateway (o webhook fecha a venda no servidor).
   useEffect(() => {
-    if (!isPix || !mpId || paid) return;
+    if (!txId || paid || txId.startsWith("sim-")) return;
     let active = true;
     const timer = setInterval(async () => {
-      const res = await paymentStatusAction(mpId);
-      if (active && res?.status === "approved") {
+      const res = await paymentStatusAction(txId, provider);
+      if (active && (res?.status === "approved" || res?.status === "paid")) {
         setPaid(true);
         clearInterval(timer);
       }
@@ -50,19 +53,19 @@ export function PaymentDrawer({
       active = false;
       clearInterval(timer);
     };
-  }, [isPix, mpId, paid]);
+  }, [txId, provider, paid]);
 
   async function confirmManual() {
     if (!state) return;
     setConfirming(true);
-    await payOrderAction(state.order.id, state.method, mpId ?? undefined);
+    await payOrderAction(state.order.id, state.method, txId ?? undefined);
     setConfirming(false);
     setPaid(true);
   }
 
   function copyCode() {
-    if (state?.pix?.qrCode) {
-      navigator.clipboard?.writeText(state.pix.qrCode);
+    if (state?.payment?.qrCode) {
+      navigator.clipboard?.writeText(state.payment.qrCode);
       setCopied(true);
     }
   }
@@ -79,6 +82,8 @@ export function PaymentDrawer({
       win.print();
     }
   }
+
+  const payment = state?.payment ?? null;
 
   return (
     <AnimatePresence>
@@ -126,6 +131,7 @@ export function PaymentDrawer({
                 >
                   <Printer className="h-4 w-4" /> Imprimir cupom (NFC-e)
                 </button>
+                <ReceiptPrinter order={state.order} />
                 <button
                   type="button"
                   onClick={onPaid}
@@ -142,14 +148,18 @@ export function PaymentDrawer({
                   </div>
                 )}
 
-                {isPix && state.pix?.qrCodeBase64 ? (
+                <p className="text-xs uppercase tracking-wider text-text-faint">
+                  {payment?.provider ?? provider} · {state.method}
+                </p>
+
+                {isPix && payment?.qrCodeBase64 ? (
                   <div className="flex flex-col items-center gap-4 rounded-[24px] border border-border bg-surface p-5">
                     <p className="flex items-center gap-2 text-sm font-semibold text-text">
                       <QrCode className="h-4 w-4 text-lime" /> Pague com Pix
                     </p>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`data:image/png;base64,${state.pix.qrCodeBase64}`}
+                      src={`data:image/png;base64,${payment.qrCodeBase64}`}
                       alt="QR Code Pix"
                       className="h-52 w-52 rounded-2xl bg-white p-2"
                     />
@@ -161,13 +171,39 @@ export function PaymentDrawer({
                       <Copy className="h-4 w-4" /> {copied ? "Código copiado!" : "Copiar código copia-e-cola"}
                     </button>
                     <p className="flex items-center gap-2 text-xs text-text-faint">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Aguardando confirmação do Mercado Pago…
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Aguardando confirmação…
+                    </p>
+                  </div>
+                ) : payment?.redirectUrl ? (
+                  <div className="flex flex-col gap-3 rounded-[24px] border border-border bg-surface p-5">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-text">
+                      <CreditCard className="h-4 w-4 text-lime" /> Pagamento com cartão
+                    </p>
+                    <a
+                      href={payment.redirectUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 rounded-2xl bg-lime px-4 py-3 font-semibold text-ink hover:bg-lime-strong"
+                    >
+                      <ExternalLink className="h-4 w-4" /> Abrir checkout
+                    </a>
+                    <p className="flex items-center gap-2 text-xs text-text-faint">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Aguardando confirmação…
                     </p>
                   </div>
                 ) : (
                   <div className="rounded-[24px] border border-border bg-surface p-5 text-sm text-text-soft">
-                    {state.pix?.message ??
+                    {payment?.message ??
                       `Receba o pagamento em ${state.method.toLowerCase()} e confirme abaixo para fechar a venda.`}
+                    {payment?.qrCode ? (
+                      <button
+                        type="button"
+                        onClick={copyCode}
+                        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-surface-muted px-4 py-2.5 text-xs font-semibold text-text hover:bg-surface"
+                      >
+                        <Copy className="h-3.5 w-3.5" /> {copied ? "Copiado!" : "Copiar código Pix"}
+                      </button>
+                    ) : null}
                   </div>
                 )}
 

@@ -8,17 +8,22 @@ import {
   createPayment,
   emitNfce,
   fetchProductPhoto,
+  getCashCurrent,
   getCupom,
   getGateways,
+  getOrders,
   getPaymentStatus,
+  getPdvSummary,
   identifyCustomer,
   importProductsOcr,
   payOrder,
   salesAssist,
   setProductImage,
+  type CashSession,
   type IdentifyResult,
   type Order,
   type PaymentResult,
+  type PdvSummary,
   type SalesAssistResult
 } from "@/lib/api";
 
@@ -78,6 +83,16 @@ export async function assistAction(text: string): Promise<SalesAssistResult | nu
 export async function identifyQrAction(qrToken: string): Promise<IdentifyResult | null> {
   if (!qrToken.trim()) return null;
   return identifyCustomer({ method: "QR", qrToken });
+}
+
+/** Dados do monitor de lançamentos ao vivo (vendas recentes + KPIs + caixa). */
+export async function monitorDataAction(): Promise<{
+  orders: Order[];
+  pdv: PdvSummary | null;
+  cash: CashSession | null;
+}> {
+  const [orders, pdv, cash] = await Promise.all([getOrders(), getPdvSummary(), getCashCurrent()]);
+  return { orders: orders ?? [], pdv: pdv ?? null, cash: cash ?? null };
 }
 
 /** Emite a NFC-e (cupom) da venda — real (Focus) ou simulada. */

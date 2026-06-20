@@ -9,6 +9,15 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluído
 
 ---
 
+## PDV realista + Tributário preditivo (2026-06-20) 🔄 em deploy
+- [x] **Frente T — Tributário/agente preditivo** (deployado): `tax-engine` (alíquota Simples por anexo+RBT12), `tax-ai` (classificação fiscal NCM/CFOP/CST via **Angra IA** DeepSeek/Grok + heurística, auto-aplica por confiança; predição DAS/enquadramento/malha fina), cockpit `/tributos`, `AngraAiService` compartilhado. Relógio discreto no cabeçalho. Commit `582848bf`.
+- [x] **Frente A — Catálogo realista**: seed idempotente `seed-catalogo.ts` (~80 produtos c/ fotos LoremFlickr + fiscal por categoria) + filtro de categoria no `product-grid`.
+- [x] **Frente B — Monitor de lançamentos**: `sales-monitor.tsx` (polling 5s: /sales+/dashboard/pdv+/cash/current), painel no `/pdv` + rota tela-cheia `/pdv/monitor`.
+- [x] **Frente C — Leitor de barras**: `barcode-scanner` cross-browser (BarcodeDetector→@zxing/browser→manual, com bipe).
+- [x] **Frente D — PIX estático funcional**: `pix-static.ts` (EMV/BR Code + CRC16 + `qrcode`), `payments.staticPix` (PIX_KEY → QR escaneável sem gateway; fallback simulado). Configurar `PIX_KEY` no `.env` para cair na conta.
+- [ ] Validar (typecheck/lint/build) + commit + deploy + rodar seed no VPS.
+- **Pendente futuro (a pedido, desligado/adiado):** Módulo Condomínios (desligado), BI QlikView, SPED real, Planejamento orçamentário.
+
 ## Módulo PDV (Ponto de Venda) full-stack com IA (2026-06-19) ✅ (validação local)
 - [x] **Schema Prisma**: +`Order`/`OrderItem` (+enum `OrderStatus`), migration aditiva `20260619120000_add_orders_pdv`; `prisma generate` OK
 - [x] **Backend `sales/`**: `POST /sales` (carrinho), `GET /sales`, `GET /sales/:id`, `POST /sales/:id/pay` (transação Prisma única: Order PAID + FinancialEntry RECEIVABLE pago + CashEntry SALE + StockMovement OUT + AuditLog), `POST /sales/:id/cancel` (estorna estoque), `POST /sales/assist` (copiloto LLM + fallback heurístico). Crediário acima do limite → `ApprovalRequest`

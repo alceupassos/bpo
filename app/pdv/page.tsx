@@ -5,10 +5,13 @@ import { DashboardTopNav } from "@/components/dashboard-top-nav";
 import { DataTable } from "@/components/data-table";
 import { PageShell } from "@/components/page-shell";
 import { PdvTerminal } from "@/components/pdv/pdv-terminal";
+import { SalesMonitor } from "@/components/pdv/sales-monitor";
 import { apiErrorTracker, getCashCurrent, getCustomers, getPdvSummary, getProducts } from "@/lib/api";
 import { pageSummaries } from "@/lib/data";
 import { formatBRL } from "@/lib/formatters";
 import { importOcrAction } from "./actions";
+import Link from "next/link";
+import { Activity } from "lucide-react";
 
 const summary = pageSummaries["/pdv"];
 
@@ -55,6 +58,19 @@ export default async function PdvPage() {
       </div>
 
       <PdvTerminal products={products ?? []} customers={customers ?? []} hasSession={Boolean(session)} />
+
+      <div className="mt-6 flex items-center justify-between px-1">
+        <h2 className="text-lg font-bold text-text">Monitor de lançamentos</h2>
+        <Link
+          href="/pdv/monitor"
+          className="flex items-center gap-2 rounded-2xl border border-border bg-surface-muted px-4 py-2 text-sm font-semibold text-text hover:bg-surface"
+        >
+          <Activity className="h-4 w-4 text-lime" /> Abrir em tela cheia
+        </Link>
+      </div>
+      <div className="mt-3">
+        <SalesMonitor />
+      </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <ChartCard title="Vendas por hora" meta="Faturamento do dia por faixa horária" actionHref="/relatorios">

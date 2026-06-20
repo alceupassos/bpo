@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../prisma/prisma.service";
 import { SalesService } from "../sales/sales.service";
+import { buildPixPayload, pixQrCodeBase64 } from "./pix-static";
 
 export type ProviderId = "MERCADOPAGO" | "ASAAS" | "STRIPE" | "PAGBANK" | "REDE" | "INFINITYPAY";
 export type PayMethod = "PIX" | "CARTAO";
@@ -89,6 +90,29 @@ export class PaymentsService {
     };
   }
 
+  /**
+   * Pix estático escaneável a partir de uma chave Pix (PIX_KEY) configurada,
+   * sem depender de gateway. Gera o BR Code (copia-e-cola) e o QR em base64.
+   */
+  private async staticPix(order: { id: string; number: number }, total: number): Promise<PaymentResult> {
+    const key = this.config.get<string>("PIX_KEY")!;
+    const merchantName = this.config.get<string>("PIX_MERCHANT_NAME") || "ANGRA BPO";
+    const merchantCity = this.config.get<string>("PIX_MERCHANT_CITY") || "SAO PAULO";
+    const txid = order.id.replace(/-/g, "").slice(0, 25);
+    const payload = buildPixPayload({ key, merchantName, merchantCity, amount: total, txid });
+    const qrCodeBase64 = await pixQrCodeBase64(payload);
+    return {
+      provider: "MANUAL",
+      method: "PIX",
+      status: "static",
+      txId: `pix-static-${order.id}`,
+      qrCode: payload,
+      qrCodeBase64,
+      redirectUrl: null,
+      message: "Pix gerado — escaneie para pagar; confirme o recebimento."
+    };
+  }
+
   /** Cria o pagamento no provedor escolhido. */
   async createPayment(
     orderId: string,
@@ -106,7 +130,11 @@ export class PaymentsService {
     let result: PaymentResult;
     try {
       if (!this.hasCredential(provider)) {
-        result = this.simulated(provider, method, order.id, total);
+        if (method === "PIX" && this.config.get<string>("PIX_KEY")) {
+          result = await this.staticPix(order, total);
+        } else {
+          result = this.simulated(provider, method, order.id, total);
+        }
       } else {
         result = await this.dispatch(provider, method, order, total, opts.payerEmail);
       }

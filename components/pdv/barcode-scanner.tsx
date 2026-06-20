@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { ScanLine, X } from "lucide-react";
 
 /**
- * Leitor de código de barras / QR por câmera usando a API nativa BarcodeDetector
- * (Chrome/Edge/Android). Quando indisponível (ex.: Firefox/Safari), degrada para
- * um campo de digitação manual — o caixa nunca trava. Para ampliar o suporte 1D
- * pode-se trocar por html5-qrcode/@zxing futuramente.
+ * Leitor de código de barras / QR por câmera, funcionando em qualquer navegador:
+ * usa a API nativa BarcodeDetector quando disponível (Chrome/Edge/Android) e cai
+ * para o ZXing (@zxing/browser) no Firefox/Safari/iOS. Sem câmera, há entrada
+ * manual — o caixa nunca trava. Emite um bipe curto ao ler.
  */
 export function BarcodeScanner({
   onDetected,
@@ -24,14 +24,30 @@ export function BarcodeScanner({
     let stream: MediaStream | null = null;
     let raf = 0;
     let active = true;
+    let zxingControls: { stop?: () => void } | null = null;
+    let done = false;
 
-    async function start() {
-      if (typeof window === "undefined" || !("BarcodeDetector" in window)) {
-        setError("Leitor nativo indisponível neste navegador — digite o código abaixo.");
-        return;
-      }
+    function beepAndEmit(code: string) {
+      if (done) return;
+      done = true;
       try {
-        const detector = new (window as unknown as { BarcodeDetector: new (opts: unknown) => { detect: (v: unknown) => Promise<{ rawValue?: string }[]> } }).BarcodeDetector({
+        const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        osc.frequency.value = 880;
+        osc.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+      } catch {
+        /* sem áudio, segue */
+      }
+      onDetected(code);
+    }
+
+    async function startNative(): Promise<boolean> {
+      if (typeof window === "undefined" || !("BarcodeDetector" in window)) return false;
+      try {
+        const Detector = (window as unknown as { BarcodeDetector: new (o: unknown) => { detect: (v: unknown) => Promise<{ rawValue?: string }[]> } }).BarcodeDetector;
+        const detector = new Detector({
           formats: ["ean_13", "ean_8", "code_128", "code_39", "upc_a", "upc_e", "qr_code"]
         });
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -44,25 +60,47 @@ export function BarcodeScanner({
           try {
             const codes = await detector.detect(videoRef.current);
             if (codes?.length && codes[0].rawValue) {
-              onDetected(String(codes[0].rawValue));
+              beepAndEmit(String(codes[0].rawValue));
               return;
             }
           } catch {
-            /* frame sem leitura — segue tentando */
+            /* frame sem leitura */
           }
           raf = requestAnimationFrame(tick);
         };
         raf = requestAnimationFrame(tick);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    async function startZxing() {
+      try {
+        const { BrowserMultiFormatReader } = await import("@zxing/browser");
+        const reader = new BrowserMultiFormatReader();
+        zxingControls = await reader.decodeFromVideoDevice(undefined, videoRef.current ?? undefined, (result) => {
+          if (result) beepAndEmit(result.getText());
+        });
       } catch {
         setError("Não foi possível acessar a câmera — digite o código abaixo.");
       }
     }
 
-    start();
+    (async () => {
+      const ok = await startNative();
+      if (!ok && active) await startZxing();
+    })();
+
     return () => {
       active = false;
       if (raf) cancelAnimationFrame(raf);
       if (stream) stream.getTracks().forEach((t) => t.stop());
+      try {
+        zxingControls?.stop?.();
+      } catch {
+        /* ok */
+      }
     };
   }, [onDetected]);
 

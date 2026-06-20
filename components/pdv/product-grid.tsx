@@ -20,15 +20,28 @@ export function ProductGrid({
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string>("__all__");
   const [capturing, setCapturing] = useState<Product | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of products) {
+      if (p.category) set.add(p.category);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [products]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter((p) => p.name.toLowerCase().includes(q) || (p.barcode ?? "").includes(q));
-  }, [products, query]);
+    return products.filter((p) => {
+      const matchesCategory = category === "__all__" || p.category === category;
+      if (!matchesCategory) return false;
+      if (!q) return true;
+      return p.name.toLowerCase().includes(q) || (p.barcode ?? "").includes(q);
+    });
+  }, [products, query, category]);
 
   async function saveCapture(dataUrl: string) {
     const product = capturing;
@@ -81,6 +94,29 @@ export function ProductGrid({
           </button>
         )}
       </div>
+
+      {categories.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {[{ key: "__all__", label: "Todas" }, ...categories.map((c) => ({ key: c, label: c }))].map((chip) => {
+            const active = category === chip.key;
+            return (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={() => setCategory(chip.key)}
+                aria-pressed={active}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  active
+                    ? "bg-lime text-ink"
+                    : "border border-border bg-surface-muted text-text-soft hover:text-text"
+                }`}
+              >
+                {chip.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <p className="py-10 text-center text-sm text-text-faint">Nenhum produto encontrado.</p>
